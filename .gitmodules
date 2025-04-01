@@ -1,0 +1,6 @@
+[submodule "wildlife-datasets"]
+	path = wildlife-datasets
+	url = git@github.com:wildlifelabs/wildlife-datasets.git
+[submodule "wildlife-tools"]
+	path = wildlife-tools
+	url = git@github.com:wildlifelabs/wildlife-tools.git
