@@ -1,0 +1,58 @@
+{
+  "pipeline": ["step-1", "step-2", "step-3", "step-4", "step-5", "step-6", "step-7"],
+  "step-1": ["camera-1", "camera-2", "camera-3"],
+  "step-2": ["detection-1","detection-2", "detection-3"],
+  "step-3": ["location-1", "location-2", "location-3"],
+  "step-4": ["tracker-aggregator"],
+  "step-5": ["payload-create"],
+  "step-6": ["payload-extract"],
+  "step-7": ["local-save"],
+  "camera-1": {
+    "handler": "welfareobs.handlers.camera.Camera",
+    "config": "rtsp://admin:password@192.168.1.2:554/stream1"
+  },
+  "camera-2": {
+    "handler": "welfareobs.handlers.camera.Camera",
+    "config": "rtsp://admin:password@192.168.1.3:554/stream1"
+  },
+  "camera-3": {
+    "handler": "welfareobs.handlers.camera.Camera",
+    "config": "rtsp://admin:password@192.168.1.4:554/stream1"
+  },
+  "detection-1": {
+    "handler": "welfareobs.handlers.detection.Detection",
+    "input": "camera-1",
+    "config": "config/detection.json"
+  },
+  "location-1": {
+    "handler": "welfareobs.handlers.location.Location",
+    "input": "detection-1",
+    "config": "config/location.json"
+  },
+  "tracker-aggregator": {
+    "handler": "welfareobs.handlers.aggregator.TrackerAggregator",
+    "input": ["detection-1","detection-2","detection-3"],
+    "config": "config/tracker-aggregator.json"
+  },
+  "payload-create": {
+    "handler": "welfareobs.handlers.payload_create.PayloadCreate",
+    "input": "tracker-aggregator",
+    "config": "config/payload-create.json"
+  },
+  "payload-extract": {
+    "handler": "welfareobs.handlers.payload_extract.PayloadExtract",
+    "input": "payload-create",
+    "config": "config/payload-extract.json"
+  },
+  "local-save": {
+    "handler": "welfareobs.handlers.payload.SaveLocal",
+    "input": "payload-extract",
+    "config": ""
+  },
+  "int": "1",
+  "float": "1.1",
+  "bool-1": "True",
+  "bool-2": "false",
+  "bool-3": "1",
+  "bool-4": "0"
+}

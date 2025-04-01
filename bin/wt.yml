@@ -1,0 +1,74 @@
+name: wt
+
+channels:
+  - nvidia/label/cuda-12.4
+  - pypi
+  - conda-forge
+
+dependencies:
+  - python=3.11
+  - wheel
+  - cryptography
+  - openssl
+  - pyopenssl
+  - murmurhash
+  - lxml
+  - pip
+  - cython
+  - cytoolz
+  - tqdm
+  - typer
+  - pygments
+
+  # Stats and analysis
+  - scipy
+  - numpy
+  - pandas
+  - imbalanced-learn
+  - scikit-learn
+  - matplotlib
+  - seaborn
+  - bokeh
+  - shapely
+  - scikit-image
+
+  # Jupyter
+  - jupyter-server-proxy
+  - jupyterlab-lsp
+  - python-lsp-server
+  - jupyterlab-mathjax2
+  - jupyterlab
+  - papermill
+  - ipywidgets
+  - nbconvert
+  - nb_conda_kernels
+  - ipython
+  - ipykernel
+  - spyder
+
+  #  - nvidia/label/cuda-12.1.0::cuda
+  - tensorboard
+  - opencv
+  - metric-learning::pytorch-metric-learning
+  - transformers
+  
+  # Requirements wildlife-tools
+  - timm
+  - kornia
+
+  # Requirements wildlife-datasets
+  - Pillow
+  - pycocotools
+  - datasets
+  - gdown
+  - kaggle
+
+  #PIP Installation and Pytorch Conda is depricated
+  - pip:
+      - git+https://github.com/cvg/glue-factory.git@1f56839db2242929960d70f85bfac6c19ef2821c
+      - rtsp  # requirement for Camera
+      - torch --index-url https://download.pytorch.org/whl/cu124
+      - torchvision --index-url https://download.pytorch.org/whl/cu124
+      - torchaudio --index-url https://download.pytorch.org/whl/cu124
+      - detectron2 @ git+https://github.com/facebookresearch/detectron2.git
+

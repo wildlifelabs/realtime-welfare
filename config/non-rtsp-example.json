@@ -1,0 +1,44 @@
+{
+  "pipeline": ["step-1", "step-2", "step-3", "step-4", "step-5", "step-6", "step-7"],
+  "step-1": ["camera-1"],
+  "step-2": ["detection-1"],
+  "step-3": ["location-1"],
+  "step-4": ["aggregator"],
+  "step-5": ["payload-create"],
+  "step-6": ["payload-extract"],
+  "step-7": ["local-save"],
+  "camera-1": {
+    "handler": "welfareobs.handlers.camera.FauxCameraHandler",
+    "config": "/project/config/20230920_091444.jpg"
+  },
+  "detection-1": {
+    "handler": "welfareobs.handlers.detection.DetectionHandler",
+    "input": "camera-1",
+    "config": "/project/config/detection.json"
+  },
+  "location-1": {
+    "handler": "welfareobs.handlers.location.LocationHandler",
+    "input": "detection-1",
+    "config": "/project/config/location.json"
+  },
+  "aggregator": {
+    "handler": "welfareobs.handlers.aggregator.AggregatorHandler",
+    "input": ["location-1"],
+    "config": "/project/config/aggregator.json"
+  },
+  "payload-create": {
+    "handler": "welfareobs.handlers.payload_create.PayloadCreateHandler",
+    "input": "aggregator",
+    "config": "config/payload-create.json"
+  },
+  "payload-extract": {
+    "handler": "welfareobs.handlers.payload_extract.PayloadExtractHandler",
+    "input": "payload-create",
+    "config": "config/payload-extract.json"
+  },
+  "local-save": {
+    "handler": "welfareobs.handlers.filesystem.SaveLocalHandler",
+    "input": "payload-create",
+    "config": ""
+  }
+}

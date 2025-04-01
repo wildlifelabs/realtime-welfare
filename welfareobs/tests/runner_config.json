@@ -1,0 +1,26 @@
+{
+  "pipeline": [
+    "step-1",
+    "step-2"
+  ],
+  "step-1": [
+    "task-1",
+    "task-2"
+  ],
+  "step-2": [
+    "task-3"
+  ],
+  "task-1":{
+    "handler": "tests.stub_handler.StubHandler",
+    "config": "first config"
+  },
+  "task-2":{
+    "handler": "tests.stub_handler.StubHandler",
+    "config": "second config"
+  },
+  "task-3":{
+    "handler": "tests.stub_handler.StubHandler",
+    "input": ["task-1","task-2"],
+    "config": "third config"
+  }
+}

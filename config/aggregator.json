@@ -1,0 +1,4 @@
+{
+  "dbscan-eps": "2.0",
+  "min-samples": "1"
+}

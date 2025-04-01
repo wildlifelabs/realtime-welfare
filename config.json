@@ -1,0 +1,47 @@
+{
+    "configs": "wod-1-md, wod-1-swin, wod-1-md-adam",
+    "wod-1-md": {
+        "comment": "Fine-tuning Mega Descriptor",
+        "name": "wod-1-md",
+        "root": "/project/data/1028749_First Group",
+        "backbone": "hf-hub:BVRA/wildlife-mega-L-384",
+        "trainer-batch-size": "32",
+        "trainer-workers": "2",
+        "trainer-epochs": "1",
+        "features-batch-size": "64",
+        "features-workers": "2",
+        "dimensions": "384",
+        "optimizer": "SGD",
+        "learning-rate": "0.001",
+        "learning-rate-momentum": "0.9"
+    },
+    "wod-1-swin": {
+        "comment": "Training empty SWIN model",
+        "name": "wod-1-swin",
+        "root": "/project/data/1028749_First Group",
+        "backbone": "swin_large_patch4_window12_384",
+        "trainer-batch-size": "32",
+        "trainer-workers": "2",
+        "trainer-epochs": "1",
+        "features-batch-size": "64",
+        "features-workers": "2",
+        "dimensions": "384",
+        "optimizer": "SGD",
+        "learning-rate": "0.001",
+        "learning-rate-momentum": "0.9"
+    },
+    "wod-1-md-adam": {
+        "comment": "Fine-tuning Mega Descriptor with Adam optimizer",
+        "name": "wod-1-md-adam",
+        "root": "/project/data/1028749_First Group",
+        "backbone": "hf-hub:BVRA/wildlife-mega-L-384",
+        "trainer-batch-size": "32",
+        "trainer-workers": "2",
+        "trainer-epochs": "1",
+        "features-batch-size": "64",
+        "features-workers": "2",
+        "dimensions": "384",
+        "optimizer": "Adam",
+        "learning-rate": "0.001"
+    }
+}

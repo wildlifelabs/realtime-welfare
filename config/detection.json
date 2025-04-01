@@ -1,0 +1,6 @@
+{
+  "dimensions": "384",
+  "reid-model-root": "/project/data/results/wod-1-md",
+  "reid-timm-backbone": "hf-hub:BVRA/wildlife-mega-L-384",
+  "segmentation-checkpoint": "/project/data/model_final_a3ec72.pkl"
+}
