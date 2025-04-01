@@ -1,4 +1,5 @@
 SHELL := /bin/bash
+include Makefile.cfg
 # Description: Self documenting Makefile that has all the targets...
 #
 # Copyright (C) 2025 J.Cincotta
@@ -41,7 +42,7 @@ build: ## Build Docker Environment
 	docker build -t welfare-obs -f Dockerfile .
 
 jupyter: build ## Start Jupyter
-	docker run --shm-size=1g -it --privileged --gpus all --rm -p 8888:8888 -p 8008:8008 -v ./:/project -v /home/cinj/disk_1/datasets:/project/data --name welfare-obs-instance welfare-obs /script/jupyter.sh wt /project
+	docker run --shm-size=1g -it --privileged --gpus all --rm -p 8888:8888 -p 8008:8008 -v ./:/project -v $DATASET_ROOT:/project/data --name welfare-obs-instance welfare-obs /script/jupyter.sh wt /project
 
 connect: ## Connect to CUDA Container
 	docker exec -it welfare-obs-instance bash
@@ -49,15 +50,12 @@ connect: ## Connect to CUDA Container
 train-model: ## Train the models based on config
 	docker exec -it welfare-obs-instance /project/bin/py.sh wt /project/train_model.py
 
-eval-model: ## Evaluate the model based on config
-	docker exec -it welfare-obs-instance /project/bin/py.sh wt /project/eval_model.py
-
-setup: ## Set up local environment
+setup-local: ## Set up local environment
 	mamba env create -f bin/wt.yml
 
-setup-calibrate-cameras: ## Calibrate cameras
+setup-calibrate-cameras: ## Setup calibrate cameras application
 	$(MAKE) -C calibrate-camera setup
 
-calibrate-cameras: ## Calibrate cameras
+calibrate-cameras: ## Run the calibrate cameras application (local machine venv)
 	$(MAKE) -C calibrate-camera calibrate-camera
 
