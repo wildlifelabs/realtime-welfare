@@ -25,6 +25,7 @@ import concurrent.futures
 import time
 from queue import Queue
 from welfareobs.handlers.abstract_handler import AbstractHandler
+from welfareobs.utils.performance_monitor import PerformanceMonitor
 
 
 class PipelineStep(object):
@@ -33,21 +34,22 @@ class PipelineStep(object):
     steps since 1. they should finish close in time to each other and 2. as soon as one step depends on aggregating
     inputs of the previous steps, we end up with exactly the same blocking/performance.
     """
-    THREAD_POOL_SIZE = 5
-
-    def __init__(self):
+    def __init__(self,
+                 label: str,
+                 performance_history_size: int = 1,
+                 thread_pool_size: int = 5,
+                 ):
+        self.__threadpool_size:int = thread_pool_size
         self.__jobs: [AbstractHandler] = []
-        self.__last_execution_time = 0
-        self.__overall_execution_time = 0
-        self.__number_of_execution_runs = 0
+        self.__label:str = label
+        self.__performance_monitor: PerformanceMonitor = PerformanceMonitor(
+            label=label,
+            history_size=performance_history_size
+        )
 
     @property
-    def last_execution_time(self) -> float:
-        return self.__last_execution_time
-
-    @property
-    def overall_execution_time(self) -> float:
-        return self.__overall_execution_time
+    def performance(self) -> PerformanceMonitor:
+        return self.__performance_monitor
 
     def add_job(self, job: AbstractHandler):
         self.__jobs.append(job)
@@ -57,20 +59,17 @@ class PipelineStep(object):
         return self.__jobs
 
     def run(self):
-        start_time = time.time()
+        self.__performance_monitor.track_start()
         job_queue: Queue = Queue()
         list(map(job_queue.put, self.__jobs))
-        with concurrent.futures.ThreadPoolExecutor(max_workers=PipelineStep.THREAD_POOL_SIZE) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=self.__threadpool_size) as executor:
             futures = []
             finished_jobs = []
             while not job_queue.empty() or any(f.running() for f in futures):
-                while not job_queue.empty() and len(futures) < PipelineStep.THREAD_POOL_SIZE:
+                while not job_queue.empty() and len(futures) < self.__threadpool_size:
                     job = job_queue.get()
                     finished_jobs.append(job)
                     future = executor.submit(job.run)
                     futures.append(future)
                 futures = [f for f in futures if not f.done()]
-            end_time = time.time()
-            self.__last_execution_time = end_time - start_time
-            self.__overall_execution_time += self.__last_execution_time
-            self.__number_of_execution_runs += 1
+            self.__performance_monitor.track_end()

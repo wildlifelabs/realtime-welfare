@@ -24,6 +24,7 @@ import threading
 from welfareobs.utils.config import Config
 from welfareobs.handlers.abstract_handler import AbstractHandler
 from welfareobs.pipeline_step import PipelineStep
+from welfareobs.utils.performance_monitor import PerformanceMonitor
 
 
 class Runner(object):
@@ -32,16 +33,27 @@ class Runner(object):
         self.__config: Config = config
         self.__job_map: {str: AbstractHandler} = {}
         self.__pipeline_steps: [PipelineStep] = []
+        self.__performance_history_size: int = 1
+        self.__thread_pool_size: int = 5
+        self.__pipeline_label: str = ""
         self.__last_execution_time = 0
         self.__number_of_execution_runs = 0
         self.__overall_execution_time = 0
         self.__validate()  # will raise SyntaxError on invalid config
         self.__parse()
+        self.__performance_monitor: PerformanceMonitor = PerformanceMonitor(
+            label=self.__pipeline_label,
+            history_size=100
+        )
         self.__loop = threading.Event()
         self.__loop.set()
         self.__hnd = None
         self.__has_setup = False
         self.__has_torndown = False
+
+    @property
+    def performance(self) -> PerformanceMonitor:
+        return self.__performance_monitor
 
     def __setup(self):
         for job in self.__job_map.values():
@@ -53,23 +65,25 @@ class Runner(object):
             job.teardown()
         self.__has_torndown = True
 
-    def run(self):
+    def run(self, run_count:None|int=None):
         if not self.__has_setup:
             self.__setup()
         if self.__has_torndown:
             raise RuntimeError("Already torn down")
         trigger: bool = True
         while trigger:
-            self.__last_execution_time = 0
+            self.__performance_monitor.track_start()
             for ps in self.__pipeline_steps:
                 for job in ps.jobs:
                     src_jobs = [self.__job_map[o] for o in job.required_jobs_for_inputs()]
                     job.set_inputs([o.get_output() for o in src_jobs])
                 ps.run()
-                self.__last_execution_time += ps.last_execution_time
-            self.__number_of_execution_runs += 1
-            self.__overall_execution_time += self.__last_execution_time
             trigger = self.__loop.is_set()
+            if run_count is not None:
+                if run_count == 0:
+                    trigger = False
+                run_count -= 1
+            self.__performance_monitor.track_end()
         self.__teardown()
 
     def run_once(self):
@@ -92,13 +106,23 @@ class Runner(object):
     def get_step(self, index) -> PipelineStep:
         return self.__pipeline_steps[index]
 
+    def len_steps(self) -> int:
+        return len(self.__pipeline_steps)
+
     def __parse(self):
         #
         # Parse the JSON into a pipeline of jobs
         #
         steps = self.__config.as_list("pipeline")
+        self.__pipeline_label = self.__config.as_string("settings.configuration-name")
+        self.__thread_pool_size = self.__config.as_int("settings.threadpool-size")
+        self.__performance_history_size = self.__config.as_int("settings.performance-history-size")
         for step in steps:
-            ps: PipelineStep = PipelineStep()
+            ps: PipelineStep = PipelineStep(
+                label=step,
+                performance_history_size=self.__performance_history_size,
+                thread_pool_size=self.__thread_pool_size
+            )
             tasks = self.__config[step]
             for task in tasks:
                 job_hnd = self.__config.instance(f"{task}.handler")
@@ -114,6 +138,12 @@ class Runner(object):
         #
         # Does not validate input or config parameters, if these don't exist, it's up to the handler to die gracefully.
         #
+        if not self.__config.as_bool("settings.configuration-name"):
+            raise SyntaxError("Missing settings.configuration-name")
+        if not self.__config.as_bool("settings.threadpool-size"):
+            raise SyntaxError("Missing settings.threadpool-size")
+        if not self.__config.as_bool("settings.performance-history-size"):
+            raise SyntaxError("Missing settings.performance-history-size")
         steps = self.__config.as_list("pipeline")
         if len(steps) < 1:
             raise SyntaxError("`pipeline` element must exist and contain an array of at least one element")
