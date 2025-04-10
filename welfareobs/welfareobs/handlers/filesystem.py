@@ -20,6 +20,7 @@ class SaveIntersectHandler(AbstractHandler):
     def run(self):
         with open(self.__filename, 'w', newline='') as csvfile:
             writer = csv.writer(csvfile)
+            # TODO: need to split this data into frame-level observations
             writer.writerow(['identity', 'x', 'z'])
             for intersect in self.__data:
                 for row in intersect.intersect:

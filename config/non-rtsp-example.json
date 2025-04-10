@@ -14,7 +14,7 @@
   "step-7": ["local-save"],
   "camera-1": {
     "handler": "welfareobs.handlers.camera.FauxCameraHandler",
-    "config": "/project/config/20230920_091444.jpg"
+    "config": "/project/data/wod_20241025/jasmin"
   },
   "detection-1": {
     "handler": "welfareobs.handlers.detection.DetectionHandler",
@@ -42,7 +42,7 @@
     "config": "config/payload-extract.json"
   },
   "local-save": {
-    "handler": "welfareobs.handlers.filesystem.SaveLocalHandler",
+    "handler": "welfareobs.handlers.filesystem.SaveIntersectHandler",
     "input": "payload-create",
     "config": ""
   }
