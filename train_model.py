@@ -76,6 +76,7 @@ for ptr in sets:
     os.makedirs(outpath, exist_ok=True)
     dataset=WelfareObsDataset(
         root=config[f"{ptr}.root"],
+        annotations_file=config[f"{ptr}.annotations-filename"],
         transform = T.Compose([
             T.Resize(size=dimensions),
             T.CenterCrop(size=[dimensions, dimensions]),
@@ -139,3 +140,7 @@ for ptr in sets:
     print("Extracting features...")
     features = extractor(dataset)
     features.save(os.path.join(outpath, f"similarity.pkl"))
+    ####
+    # TODO: add validation pass
+
+    

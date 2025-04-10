@@ -42,7 +42,8 @@ build: ## Build Docker Environment
 	docker build -t welfare-obs -f Dockerfile .
 
 jupyter: build ## Start Jupyter
-	docker run --shm-size=1g -it --privileged --gpus all --rm -p 8888:8888 -p 8008:8008 -v ./:/project -v $DATASET_ROOT:/project/data --name welfare-obs-instance welfare-obs /script/jupyter.sh wt /project
+	echo $(DATASET_ROOT)
+	docker run --shm-size=1g -it --privileged --gpus all --rm -p 8888:8888 -p 8008:8008 -v ./:/project -v $(DATASET_ROOT):/project/data --name welfare-obs-instance welfare-obs /script/jupyter.sh wt /project
 
 connect: ## Connect to CUDA Container
 	docker exec -it welfare-obs-instance bash

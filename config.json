@@ -1,9 +1,10 @@
 {
-    "configs": "wod-1-md, wod-1-swin, wod-1-md-adam",
-    "wod-1-md": {
+    "configs": "wod-md, wod-swin, wod-md-adam",
+    "wod-md": {
         "comment": "Fine-tuning Mega Descriptor",
-        "name": "wod-1-md",
-        "root": "/project/data/1028749_First Group",
+        "name": "wod-md",
+        "root": "/project/data/wod_reid",
+        "annotations-filename": "coco_train.json",
         "backbone": "hf-hub:BVRA/wildlife-mega-L-384",
         "trainer-batch-size": "32",
         "trainer-workers": "2",
@@ -15,10 +16,11 @@
         "learning-rate": "0.001",
         "learning-rate-momentum": "0.9"
     },
-    "wod-1-swin": {
+    "wod-swin": {
         "comment": "Training empty SWIN model",
-        "name": "wod-1-swin",
-        "root": "/project/data/1028749_First Group",
+        "name": "wod-swin",
+        "root": "/project/data/wod_reid",
+        "annotations-filename": "coco_train.json",
         "backbone": "swin_large_patch4_window12_384",
         "trainer-batch-size": "32",
         "trainer-workers": "2",
@@ -30,10 +32,11 @@
         "learning-rate": "0.001",
         "learning-rate-momentum": "0.9"
     },
-    "wod-1-md-adam": {
+    "wod-md-adam": {
         "comment": "Fine-tuning Mega Descriptor with Adam optimizer",
-        "name": "wod-1-md-adam",
-        "root": "/project/data/1028749_First Group",
+        "name": "wod-md-adam",
+        "root": "/project/data/wod_reid",
+        "annotations-filename": "coco_train.json",
         "backbone": "hf-hub:BVRA/wildlife-mega-L-384",
         "trainer-batch-size": "32",
         "trainer-workers": "2",

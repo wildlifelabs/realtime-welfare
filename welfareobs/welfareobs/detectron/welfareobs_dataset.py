@@ -39,6 +39,7 @@ class WelfareObsDataset(WildlifeDataset):
     def __init__(
             self,
             root: str | None = None,
+            annotations_file: str | None = None,
             transform: Callable | None = None,
             img_load: str = "full",
             col_path: str = "path",
@@ -49,7 +50,7 @@ class WelfareObsDataset(WildlifeDataset):
         # metadata: pd.DataFrame = pd.read_csv(metadata_filename)
         # metadata = metadata.reset_index(drop=True)
         # based on datasets_wildme.py from wildlife-datasets
-        path_json = os.path.join(root, 'annotations', 'instances.json')
+        path_json = os.path.join(root, 'annotations', annotations_file)
         path_images =  os.path.join(root, 'images')
         with open(path_json) as file:
             data = json.load(file)
@@ -79,7 +80,8 @@ class WelfareObsDataset(WildlifeDataset):
         df.loc[df['identity'] == '____', 'identity'] = -1
 
         # Remove superficial columns
-        df = df.drop(['image_id', 'file_name', 'supercategory', 'category_id'], axis=1)
+        df = df.drop(['image_id', 'file_name', 'category_id'], axis=1)
+        # df = df.drop(['image_id', 'file_name', 'supercategory', 'category_id'], axis=1)
         df.rename({'id': 'image_id'}, axis=1, inplace=True)
 
         super().__init__(df, path_images, transform, img_load, col_path, col_label, load_label)
