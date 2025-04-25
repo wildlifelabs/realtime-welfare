@@ -43,16 +43,23 @@ build: ## Build Docker Environment
 
 jupyter: build ## Start Jupyter
 	echo $(DATASET_ROOT)
-	docker run --shm-size=1g -it --privileged --gpus all --rm -p 8888:8888 -p 8008:8008 -v ./:/project -v $(DATASET_ROOT):/project/data --name welfare-obs-instance welfare-obs /script/jupyter.sh wt /project
+	docker run --shm-size=1g -it --privileged --gpus all --rm -p 8888:8888 -p 8008:8008 -v ./:/project -v $(DATASET_ROOT):/project/data --name welfare-obs-instance welfare-obs /script/jupyter.sh /project
 
 connect: ## Connect to CUDA Container
 	docker exec -it welfare-obs-instance bash
 
 train-model: ## Train the models based on config
-	docker exec -it welfare-obs-instance /project/bin/py.sh wt /project/train_model.py
+	docker exec -it welfare-obs-instance /project/bin/py.sh /project/train_model.py
+
+check-cuda: ## Check CUDA is working
+	docker exec -it welfare-obs-instance /project/bin/py.sh /project/check_cuda.py
 
 setup-local: ## Set up local environment
-	mamba env create -f bin/wt.yml
+	@python3.11 -m venv venv
+	@source venv/bin/activate;python -m pip install --upgrade pip
+	@source venv/bin/activate;python -m pip install flake8 pytest
+	@source venv/bin/activate;if [ -f bin/requirements.txt ]; then pip install -r bin/requirements.txt; fi
+	@source venv/bin/activate;if [ -f bin/requirements2.txt ]; then pip install -r bin/requirements2.txt; fi
 
 setup-calibrate-cameras: ## Setup calibrate cameras application
 	$(MAKE) -C calibrate-camera setup
