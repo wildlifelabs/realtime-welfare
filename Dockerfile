@@ -1,6 +1,4 @@
 # https://hub.docker.com/r/nvidia/cuda/tags?name=12.6.3-cudnn-devel-ubuntu
-# FROM 11.6.1-cudnn8-devel-ubuntu20.04
-# FROM nvidia/cuda:12.4.1-cudnn-devel-ubuntu22.04
 FROM nvidia/cuda:12.6.3-cudnn-devel-ubuntu24.04
 # ARG MINIFORGE_NAME=Miniforge3
 # ARG MINIFORGE_VERSION=24.11.2-1

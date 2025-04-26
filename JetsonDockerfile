@@ -1,14 +1,12 @@
-# https://hub.docker.com/r/nvidia/cuda/tags?name=12.6.3-cudnn-devel-ubuntu
-# FROM 11.6.1-cudnn8-devel-ubuntu20.04
-# FROM nvidia/cuda:12.4.1-cudnn-devel-ubuntu22.04
-FROM nvidia/cuda:12.6.3-cudnn-devel-ubuntu24.04
-# ARG MINIFORGE_NAME=Miniforge3
-# ARG MINIFORGE_VERSION=24.11.2-1
+# This specific version matches Jetson Xavier latest spec
+# https://hub.docker.com/r/nvidia/cuda/tags?name=11.4.3-devel
+# FROM nvidia/cuda:11.4.3-devel-ubuntu20.04
+
+# This version is closest to Jetson that supported PyTorch 2
+# https://hub.docker.com/r/nvidia/cuda/tags?name=11.8.0-cudnn8-devel-ubuntu20.04
+FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu20.04
 ARG TARGETPLATFORM
-# ARG CONDA_YAML=wt.yml
-# ENV CONDA_DIR=/opt/conda
 ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
-# ENV PATH=${CONDA_DIR}/bin:${PATH}
 ENV PATH=/usr/local/cuda/bin:${PATH}
 ENV CPATH=/usr/local/cuda/include
 ENV DEBIAN_FRONTEND=noninteractive
@@ -29,13 +27,14 @@ RUN mkdir /project
 RUN mkdir /project/data
 
 WORKDIR /script
-COPY ./bin/requirements.txt /script
+COPY ./bin/jetson-requirements.txt /script
 COPY ./bin/requirements2.txt /script
+
 COPY ./bin/get-pip.py /script
 # RUN wget https://bootstrap.pypa.io/get-pip.py
 RUN python3.11 /script/get-pip.py
 RUN pip3 install --upgrade pip
-RUN pip3 install -r /script/requirements.txt
+RUN pip3 install -r /script/jetson-requirements.txt
 RUN pip3 install -r /script/requirements2.txt
 
 ENV PYTHONPATH=/project/wildlife-datasets:${PYTHONPATH}
