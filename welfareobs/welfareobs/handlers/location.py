@@ -17,7 +17,7 @@ class LocationHandler(AbstractHandler):
     """
     def __init__(self, name: str, inputs: [str], param: str):
         super().__init__(name, inputs, param)
-        self.__individual_detections: Optional[List[Individual]]  = None
+        self.__individual_detections: Optional[List[Individual]] = None
         self.__pt: ProjectionTransformer = ProjectionTransformer()
         self.__clipping_threshold: int = 0
 
@@ -33,7 +33,7 @@ class LocationHandler(AbstractHandler):
         pass
 
     def set_inputs(self, values: [any]):
-        self.__individual_detections = values
+        self.__individual_detections = values[0]
 
     def get_output(self) -> any:
         output: [Intersect] = []

@@ -14,7 +14,7 @@ class ReIdHead(nn.Module):
                  checkpoint_filename: str|None = None,
                  batch_size: int = 128,
                  num_workers: int = 1,
-                 device: str = "cpu",
+                 device: str = "cuda",
                  features_database: FeatureDataset|None = None
                  ):
         super().__init__()

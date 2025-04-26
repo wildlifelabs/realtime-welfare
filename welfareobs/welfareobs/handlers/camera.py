@@ -63,9 +63,10 @@ class FauxCameraHandler(AbstractHandler):
     def setup(self):
         self.__files = self.__gather(
             self.param,
-            suffixes = ["jpg", "png"]
+            suffixes=[".jpg", ".png"]
         )
         self.__index = 0
+        print(f"found {len(self.__files)} files")
 
     def teardown(self):
         pass

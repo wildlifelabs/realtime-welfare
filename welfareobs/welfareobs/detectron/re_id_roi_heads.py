@@ -7,6 +7,7 @@ from welfareobs.detectron.re_id_head import ReIdHead
 from detectron2.structures import Boxes, ImageList, Instances
 from typing import Optional, List
 import json
+from welfareobs.utils.performance_monitor import PerformanceMonitor
 
 
 class ReIdROIHeads(StandardROIHeads):
@@ -38,6 +39,14 @@ class ReIdROIHeads(StandardROIHeads):
         """
         super().__init__(**kwargs)
         self.reid_head: ReIdHead = reid_head
+        self.__pm_seg: PerformanceMonitor = PerformanceMonitor(
+            label="ReIdROIHeads:Segmentation",
+            history_size=100
+        )
+        self.__re_seg: PerformanceMonitor = PerformanceMonitor(
+            label="ReIdROIHeads:Reidentification",
+            history_size=100
+        )
 
     def forward(
             self,
@@ -46,7 +55,10 @@ class ReIdROIHeads(StandardROIHeads):
             proposals: list[Instances],
             targets: list[Instances]|None= None,
     ) -> (list[Instances], dict[str, torch.Tensor]):
+        self.__pm_seg.track_start()
         instances, losses = super().forward(images, features, proposals, targets)
+        self.__pm_seg.track_end()
+        print(str(self.__pm_seg))
         for ptr in range(len(instances)):
             # Extract mask features from the mask branch
             mask_logits = instances[ptr].pred_masks  # Shape: (N, 1, H, W)
@@ -61,7 +73,10 @@ class ReIdROIHeads(StandardROIHeads):
                     mode="bilinear",
                     align_corners=False
                 )
+                self.__re_seg.track_start()
                 reid_embedding = self.reid_head(cropped_region)
+                self.__re_seg.track_end()
+                print(str(self.__re_seg))
                 if reid_embedding is not None:
                     reid_embeddings.append(torch.tensor([int(x) for x in reid_embedding]))
             if len(reid_embeddings) > 0:

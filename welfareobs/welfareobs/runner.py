@@ -57,6 +57,7 @@ class Runner(object):
 
     def __setup(self):
         for job in self.__job_map.values():
+            print(f"{job.name} calling setup")
             job.setup()
         self.__has_setup = True
 
@@ -67,6 +68,7 @@ class Runner(object):
 
     def run(self, run_count:None|int=None):
         if not self.__has_setup:
+            print("Calling setup")
             self.__setup()
         if self.__has_torndown:
             raise RuntimeError("Already torn down")
@@ -74,15 +76,18 @@ class Runner(object):
         while trigger:
             self.__performance_monitor.track_start()
             for ps in self.__pipeline_steps:
+                print(f"run pass {run_count} step {ps.label}")
                 for job in ps.jobs:
                     src_jobs = [self.__job_map[o] for o in job.required_jobs_for_inputs()]
                     job.set_inputs([o.get_output() for o in src_jobs])
                 ps.run()
+            # this is used to allow async continuous run with graceful shutdown
             trigger = self.__loop.is_set()
+            # alternatively, if we are performing a sync-finite-sequence then count-down 
             if run_count is not None:
+                run_count -= 1
                 if run_count == 0:
                     trigger = False
-                run_count -= 1
             self.__performance_monitor.track_end()
         self.__teardown()
 
