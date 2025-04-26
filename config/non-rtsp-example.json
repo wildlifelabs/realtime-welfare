@@ -14,7 +14,7 @@
   "step-7": ["local-save"],
   "camera-1": {
     "handler": "welfareobs.handlers.camera.FauxCameraHandler",
-    "config": "/project/data/wod_20241025/jasmin"
+    "config": "/project/data/wod_2025/20250219/"
   },
   "detection-1": {
     "handler": "welfareobs.handlers.detection.DetectionHandler",

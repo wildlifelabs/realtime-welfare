@@ -41,6 +41,12 @@ force-rebuild: ## Forced ReBuild Docker Environment
 build: ## Build Docker Environment
 	docker build -t welfare-obs -f Dockerfile .
 
+jetson-force-rebuild: ## Forced ReBuild Docker Environment
+	docker build --no-cache -t welfare-obs -f JetsonDockerfile .
+
+jetson-build: ## Build Docker Environment
+	docker build -t welfare-obs -f JetsonDockerfile .
+
 jupyter: build ## Start Jupyter
 	echo $(DATASET_ROOT)
 	docker run --shm-size=1g -it --privileged --gpus all --rm -p 8888:8888 -p 8008:8008 -v ./:/project -v $(DATASET_ROOT):/project/data --name welfare-obs-instance welfare-obs /script/jupyter.sh /project

@@ -48,6 +48,10 @@ class PipelineStep(object):
         )
 
     @property
+    def label(self) -> str:
+        return self.__label
+
+    @property
     def performance(self) -> PerformanceMonitor:
         return self.__performance_monitor
 
@@ -60,16 +64,11 @@ class PipelineStep(object):
 
     def run(self):
         self.__performance_monitor.track_start()
-        job_queue: Queue = Queue()
-        list(map(job_queue.put, self.__jobs))
         with concurrent.futures.ThreadPoolExecutor(max_workers=self.__threadpool_size) as executor:
             futures = []
-            finished_jobs = []
-            while not job_queue.empty() or any(f.running() for f in futures):
-                while not job_queue.empty() and len(futures) < self.__threadpool_size:
-                    job = job_queue.get()
-                    finished_jobs.append(job)
-                    future = executor.submit(job.run)
-                    futures.append(future)
-                futures = [f for f in futures if not f.done()]
-            self.__performance_monitor.track_end()
+            for job in self.__jobs:
+                futures.append(executor.submit(job.run))
+            while any(not f.done() for f in futures):
+                pass
+        self.__performance_monitor.track_end()
+        print(str(self.__performance_monitor))

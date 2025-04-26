@@ -32,14 +32,23 @@ class PerformanceMonitor(object):
     def __iter__(self):
         return iter(self.__history)
 
+    @property
     def average(self):
-        return sum(self.__history) / len(self.__history)
+        if len(self.__history) < 1:
+            return 0
+        return round(sum(self.__history) / len(self.__history),3)
 
+    @property
     def median(self):
-        return statistics.median(self.__history)
+        if len(self.__history) < 1:
+            return 0
+        return round(statistics.median(self.__history),3)
 
+    @property
     def stdev(self):
-        return statistics.stdev(self.__history)
+        if len(self.__history) < 2:
+            return 0
+        return round(statistics.stdev(self.__history),3)
 
     @property
     def overall_execution_time(self) -> float:
@@ -52,4 +61,7 @@ class PerformanceMonitor(object):
     @property
     def label(self) -> str:
         return self.__label
+
+    def __str__(self):
+        return f"{self.__label}: run={self.__number_of_execution_runs} time={self.__history[-1]} avg={self.average} sd={self.stdev}"
 
