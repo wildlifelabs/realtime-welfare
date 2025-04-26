@@ -2,9 +2,9 @@ from abc import ABC, abstractmethod
 
 
 class AbstractHandler(ABC):
-    def __init__(self, name: str, inputs: [str], param: str):
+    def __init__(self, name: str, inputs: list[str], param: str):
         self.__name: str = name
-        self.__inputs: [str] = inputs
+        self.__inputs: list[str] = inputs
         self.__param: str = param
 
     @property
@@ -27,11 +27,11 @@ class AbstractHandler(ABC):
     def teardown(self):
         pass
 
-    def required_jobs_for_inputs(self) -> [str]:
+    def required_jobs_for_inputs(self) -> list[str]:
         return self.__inputs
 
     @abstractmethod
-    def set_inputs(self, values: [any]):
+    def set_inputs(self, values: list):
         pass
 
     @abstractmethod

@@ -1,6 +1,6 @@
 import csv
-
 from welfareobs.handlers.abstract_handler import AbstractHandler
+from welfareobs.models.intersect import Intersect
 
 
 class SaveIntersectHandler(AbstractHandler):
@@ -9,7 +9,7 @@ class SaveIntersectHandler(AbstractHandler):
     OUTPUT: Nothing
     JSON config param is CSV output filename
     """
-    def __init__(self, name: str, inputs: [str], param: str):
+    def __init__(self, name: str, inputs: list[str], param: str):
         super().__init__(name, inputs, param)
         self.__filename = param
         self.__data = None
@@ -18,18 +18,17 @@ class SaveIntersectHandler(AbstractHandler):
         pass
 
     def run(self):
-        with open(self.__filename, 'w', newline='') as csvfile:
+        with open(self.__filename, 'a') as csvfile:
             writer = csv.writer(csvfile)
-            # TODO: need to split this data into frame-level observations
-            writer.writerow(['identity', 'x', 'z'])
-            for intersect in self.__data:
-                for row in intersect.intersect:
-                    writer.writerow([intersect.identity, row[0], row[1]])
+            if not csvfile.tell():  # Check if file is empty
+                writer.writerow(['identity', 'x', 'z', 'timestamp'])
+            for item in self.__data:
+                writer.writerow([item.identity, item.intersect[0], item.intersect[1], item.timestamp])
 
     def teardown(self):
         pass
 
-    def set_inputs(self, values: [any]):
+    def set_inputs(self, values: list):
         self.__data = values
 
     def get_output(self) -> any:

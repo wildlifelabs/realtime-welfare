@@ -1,4 +1,6 @@
 from typing import Optional
+
+from pyarrow import timestamp
 from welfareobs.detectron.detectron_configuration import get_configuration
 from welfareobs.detectron.detectron_calls import image_tensor, predict
 from detectron2.config import instantiate
@@ -64,14 +66,15 @@ class DetectionHandler(AbstractHandler):
                     Individual(
                         # TODO: map reid and class values to a dict
                         #   This should be in the config
-                        confidence = _scores[i],
-                        identity = _reids[i],
-                        species =  _classes[i],
-                        x_min = 0.0,
-                        y_min = 0.0,
-                        x_max = 0.0,
-                        y_max = 0.0,
-                        mask = _masks[i]
+                        confidence=_scores[i],
+                        identity=_reids[i],
+                        species=_classes[i],
+                        x_min=0.0, # TODO fix these
+                        y_min=0.0,
+                        x_max=0.0,
+                        y_max=0.0,
+                        mask=_masks[i],
+                        timestamp=self.__current_frame.timestamp
                     )
                 )
         self.__buffer = output

@@ -9,7 +9,7 @@ class PayloadExtractHandler(AbstractHandler):
     OUTPUT: reconstructs whatever was pkl'ed
     JSON config param is input filename
     """
-    def __init__(self, name: str, inputs: [str], param: str):
+    def __init__(self, name: str, inputs: list[str], param: str):
         super().__init__(name, inputs, param)
         self.__filename = param
         self.__data = None
@@ -24,7 +24,7 @@ class PayloadExtractHandler(AbstractHandler):
     def teardown(self):
         pass
 
-    def set_inputs(self, values: [any]):
+    def set_inputs(self, values: list):
         pass
 
     def get_output(self) -> any:

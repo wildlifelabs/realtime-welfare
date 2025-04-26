@@ -7,4 +7,5 @@ class Intersect:
     A data class that represents intersect of an individual animal
     """
     identity: str
-    intersect: [(int,int)]
+    intersect: list[tuple]
+    timestamp: float

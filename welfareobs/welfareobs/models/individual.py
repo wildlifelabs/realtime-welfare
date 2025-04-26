@@ -15,3 +15,4 @@ class Individual:
     x_max: float
     y_max: float
     mask: np.ndarray
+    timestamp: float

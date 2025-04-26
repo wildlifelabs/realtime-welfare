@@ -1,5 +1,3 @@
-from typing import Optional, List
-
 from welfareobs.handlers.abstract_handler import AbstractHandler
 from PIL import Image
 
@@ -15,9 +13,9 @@ class LocationHandler(AbstractHandler):
     OUTPUT: array of intersect (Intersect data class) matching intersections for each individual
     JSON config param is a config JSON filename
     """
-    def __init__(self, name: str, inputs: [str], param: str):
+    def __init__(self, name: str, inputs: list[str], param: str):
         super().__init__(name, inputs, param)
-        self.__individual_detections: Optional[List[Individual]] = None
+        self.__individual_detections: list[Individual]|None = None
         self.__pt: ProjectionTransformer = ProjectionTransformer()
         self.__clipping_threshold: int = 0
 
@@ -32,16 +30,17 @@ class LocationHandler(AbstractHandler):
     def teardown(self):
         pass
 
-    def set_inputs(self, values: [any]):
+    def set_inputs(self, values: list):
         self.__individual_detections = values[0]
 
     def get_output(self) -> any:
-        output: [Intersect] = []
+        output: list[Intersect] = []
         for detection in self.__individual_detections:
             output.append(
                 Intersect(
                     identity=detection.identity,
-                    intersect=self.__pt.get_xz_mask_lower_intersect(detection.mask, self.__clipping_threshold)
+                    intersect=self.__pt.get_xz_mask_lower_intersect(detection.mask, self.__clipping_threshold),
+                    timestamp=detection.timestamp
                 )
             )
         return output

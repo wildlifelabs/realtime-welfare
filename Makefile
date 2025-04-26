@@ -61,7 +61,7 @@ check-cuda: ## Check CUDA is working
 	docker exec -it welfare-obs-instance /project/bin/py.sh /project/check_cuda.py
 
 setup-local: ## Set up local environment
-	@python3.11 -m venv venv
+	@python3.13 -m venv venv
 	@source venv/bin/activate;python -m pip install --upgrade pip
 	@source venv/bin/activate;python -m pip install flake8 pytest
 	@source venv/bin/activate;if [ -f bin/requirements.txt ]; then pip install -r bin/requirements.txt; fi

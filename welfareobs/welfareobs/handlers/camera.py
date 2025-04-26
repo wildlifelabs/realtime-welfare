@@ -43,7 +43,7 @@ class FauxCameraHandler(AbstractHandler):
     OUTPUT: Frame
     JSON config param is top-level path to all images to use for testing
     """
-    def __init__(self, name: str, inputs: [str], param: str):
+    def __init__(self, name: str, inputs: list[str], param: str):
         super().__init__(name, inputs, param)
         self.__files: list = []
         self.__index = 0
@@ -74,7 +74,7 @@ class FauxCameraHandler(AbstractHandler):
     def run(self):
         pass
 
-    def set_inputs(self, values: [any]):
+    def set_inputs(self, values: list):
         pass
 
     def get_output(self) -> any:
