@@ -15,6 +15,7 @@ class ReIdROIHeads(StandardROIHeads):
             self,
             *,
             reid_head: nn.Module | None = None,
+            classes_to_reid: list = [],
             **kwargs,
     ):
         """
@@ -39,6 +40,7 @@ class ReIdROIHeads(StandardROIHeads):
         """
         super().__init__(**kwargs)
         self.reid_head: ReIdHead = reid_head
+        self.classes_to_reid: list = classes_to_reid
         self.__pm_seg: PerformanceMonitor = PerformanceMonitor(
             label="ReIdROIHeads:Segmentation",
             history_size=100
@@ -62,8 +64,15 @@ class ReIdROIHeads(StandardROIHeads):
         for ptr in range(len(instances)):
             # Extract mask features from the mask branch
             mask_logits = instances[ptr].pred_masks  # Shape: (N, 1, H, W)
-            reid_embeddings = []
+            reid_embeddings = [torch.tensor(0)] * len(mask_logits.shape[0])
+            reid_proposals = {}
             for i in range(mask_logits.shape[0]):  # Process each detected instance
+                # Don't bother trying to reid anything we are not interested in
+                c = instances[ptr].pred_classes[i].tensor[0]  # TODO: confirm this work
+                print(c)
+                if c not in self.classes_to_reid:
+                    continue
+                # convert to a set of proposals (multiple individuals)
                 x1, y1, x2, y2 = instances[ptr].pred_boxes[i].tensor[0]
                 x1, y1, x2, y2 = map(int, [x1, y1, x2, y2])
                 cropped_region = images[ptr][:,y1:y2, x1:x2]
@@ -73,15 +82,15 @@ class ReIdROIHeads(StandardROIHeads):
                     mode="bilinear",
                     align_corners=False
                 )
-                self.__re_seg.track_start()
-                reid_embedding = self.reid_head(cropped_region)
-                self.__re_seg.track_end()
-                print(str(self.__re_seg))
-                if reid_embedding is not None:
-                    reid_embeddings.append(torch.tensor([int(x) for x in reid_embedding]))
-            if len(reid_embeddings) > 0:
-                # We add a new field to Detectron instances object - this needs to be a Tensor loaded into the GPU!
-                instances[ptr].set("reid_embeddings", torch.stack(reid_embeddings).to("cuda"))
+                reid_proposals[i] = cropped_region
+            self.__re_seg.track_start()
+            tmp_embeddings = self.reid_head.forward([reid_proposals[o] for o in reid_proposals.keys()])
+            for index, offset in enumerate(reid_proposals.keys()):
+                reid_embeddings[offset] = torch.tensor(int(tmp_embeddings[index]))
+            self.__re_seg.track_end()
+            print(str(self.__re_seg))
+            # We add a new field to Detectron instances object - this needs to be a Tensor loaded into the GPU!
+            instances[ptr].set("reid_embeddings", torch.stack(reid_embeddings).to("cuda"))
         # output
         return instances, losses
 

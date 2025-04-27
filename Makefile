@@ -68,8 +68,14 @@ setup-local: ## Set up local environment
 	@source venv/bin/activate;if [ -f bin/requirements2.txt ]; then pip install -r bin/requirements2.txt; fi
 
 setup-calibrate-cameras: ## Setup calibrate cameras application
-	$(MAKE) -C calibrate-camera setup
+	$(MAKE) -C calibrate-camera-tool setup
 
-calibrate-cameras: ## Run the calibrate cameras application (local machine venv)
-	$(MAKE) -C calibrate-camera calibrate-camera
+run-calibrate-cameras: ## Run the calibrate cameras application (local machine venv)
+	$(MAKE) -C calibrate-camera-tool run
+
+setup-gcp-tool: ## Setup calibrate cameras application
+	$(MAKE) -C camera-gcp-tool setup
+
+run-camera-gcp-tool: ## Run the calibrate cameras application (local machine venv)
+	$(MAKE) -C camera-gcp-tool run
 

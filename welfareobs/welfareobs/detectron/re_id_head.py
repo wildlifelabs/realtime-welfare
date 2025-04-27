@@ -37,7 +37,7 @@ class ReIdHead(nn.Module):
             k=1,
             database_labels=self.features_database.labels_string
         )(
-            matcher(query=self.extractor([x]), database=self.features_database)
+            matcher(query=self.extractor(x), database=self.features_database)
         )
         return result
         # print(result)
