@@ -9,6 +9,7 @@ class PerformanceMonitor(object):
                  history_size: int = 1
                  ):
         self.__label = label
+        self.__history_size = history_size
         self.__history = deque(maxlen=history_size)
         self.__overall_execution_time: float = 0.0
         self.__number_of_execution_runs = 0
@@ -65,3 +66,18 @@ class PerformanceMonitor(object):
     def __str__(self):
         return f"{self.__label}: run={self.__number_of_execution_runs} time={self.__history[-1]} avg={self.average} sd={self.stdev}"
 
+    def save(self, filename, append=True):
+        start_run: int = (self.__number_of_execution_runs - self.__history_size) if self.__history_size < self.__number_of_execution_runs else 0
+        end_run: int = self.__number_of_execution_runs
+        with open(filename, 'a' if append else 'w') as csvfile:
+            writer = csv.writer(csvfile)
+            if not csvfile.tell():  # Check if file is empty
+                writer.writerow(['run', 'time', 'sum', 'avg', 'med', 'sd'])
+            state = []
+            for index, item in enumerate(self.__history):
+                state.append(item)
+                sdev = 0
+                if len(state) > 1:
+                    sdev = statistics.stdev(state)
+                writer.writerow([index + start_run, item, sum(state), sum(state) / len(state), statistics.median(state), sdev])
+    

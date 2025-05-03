@@ -32,13 +32,17 @@ class ReIdHead(nn.Module):
         self.features_database = features_database
 
     def forward(self, x, labels=None):
+        print(f"ReId Head {x}")
+        output = self.extractor(x)
+        print(f"Output: {type(output)} {len(output)}")
         matcher = CosineSimilarity()
         result = KnnClassifier(
             k=1,
             database_labels=self.features_database.labels_string
         )(
-            matcher(query=self.extractor(x), database=self.features_database)
+            matcher(query=output, database=self.features_database)
         )
+        print(result)
         return result
         # print(result)
 

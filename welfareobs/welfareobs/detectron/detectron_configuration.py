@@ -135,6 +135,7 @@ def get_configuration(
                     path=os.path.join(root, "similarity.pkl")
                 )
             ),
+            classes_to_reid=[23]
         ),
         pixel_mean=constants["imagenet_bgr256_mean"],
         pixel_std=constants["imagenet_bgr256_std"],

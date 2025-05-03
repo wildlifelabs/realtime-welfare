@@ -8,6 +8,8 @@ from detectron2.structures import Boxes, ImageList, Instances
 from typing import Optional, List
 import json
 from welfareobs.utils.performance_monitor import PerformanceMonitor
+import matplotlib.pyplot as plt
+import numpy as np
 
 
 class ReIdROIHeads(StandardROIHeads):
@@ -41,14 +43,6 @@ class ReIdROIHeads(StandardROIHeads):
         super().__init__(**kwargs)
         self.reid_head: ReIdHead = reid_head
         self.classes_to_reid: list = classes_to_reid
-        self.__pm_seg: PerformanceMonitor = PerformanceMonitor(
-            label="ReIdROIHeads:Segmentation",
-            history_size=100
-        )
-        self.__re_seg: PerformanceMonitor = PerformanceMonitor(
-            label="ReIdROIHeads:Reidentification",
-            history_size=100
-        )
 
     def forward(
             self,
@@ -57,23 +51,22 @@ class ReIdROIHeads(StandardROIHeads):
             proposals: list[Instances],
             targets: list[Instances]|None= None,
     ) -> (list[Instances], dict[str, torch.Tensor]):
-        self.__pm_seg.track_start()
         instances, losses = super().forward(images, features, proposals, targets)
-        self.__pm_seg.track_end()
-        print(str(self.__pm_seg))
         for ptr in range(len(instances)):
-            # Extract mask features from the mask branch
+            self.dump_image(images[ptr])
+            self.dump_instance(instances[ptr])
             mask_logits = instances[ptr].pred_masks  # Shape: (N, 1, H, W)
-            reid_embeddings = [torch.tensor(0)] * len(mask_logits.shape[0])
+            reid_embeddings = [torch.tensor(-1)] * mask_logits.shape[0]
             reid_proposals = {}
             for i in range(mask_logits.shape[0]):  # Process each detected instance
                 # Don't bother trying to reid anything we are not interested in
-                c = instances[ptr].pred_classes[i].tensor[0]  # TODO: confirm this work
-                print(c)
+                c = instances[ptr].pred_classes[i]  
                 if c not in self.classes_to_reid:
+                    # print(f"IGNORED re_roi_heads:forward {ptr}")
                     continue
                 # convert to a set of proposals (multiple individuals)
-                x1, y1, x2, y2 = instances[ptr].pred_boxes[i].tensor[0]
+                # print(instances[ptr].pred_boxes[i].tensor.cpu().numpy())
+                x1, y1, x2, y2 = instances[ptr].pred_boxes[i].tensor[0].cpu().numpy()
                 x1, y1, x2, y2 = map(int, [x1, y1, x2, y2])
                 cropped_region = images[ptr][:,y1:y2, x1:x2]
                 cropped_region = F.interpolate(
@@ -83,14 +76,33 @@ class ReIdROIHeads(StandardROIHeads):
                     align_corners=False
                 )
                 reid_proposals[i] = cropped_region
-            self.__re_seg.track_start()
-            tmp_embeddings = self.reid_head.forward([reid_proposals[o] for o in reid_proposals.keys()])
-            for index, offset in enumerate(reid_proposals.keys()):
-                reid_embeddings[offset] = torch.tensor(int(tmp_embeddings[index]))
-            self.__re_seg.track_end()
-            print(str(self.__re_seg))
-            # We add a new field to Detectron instances object - this needs to be a Tensor loaded into the GPU!
-            instances[ptr].set("reid_embeddings", torch.stack(reid_embeddings).to("cuda"))
+                print(f"re_roi_heads:forward Instance {ptr}, Proposal = {i} @ {[x1, y1, x2, y2]}")
+            if len(reid_proposals.keys()) > 0:
+                tmp_embeddings = self.reid_head.forward([(reid_proposals[o],0) for o in reid_proposals.keys()])
+                for index, offset in enumerate(reid_proposals.keys()):
+                    reid_embeddings[offset] = torch.tensor(int(tmp_embeddings[index]))
+                # We add a new field to Detectron instances object - this needs to be a Tensor loaded into the GPU!
+                instances[ptr].set("reid_embeddings", torch.stack(reid_embeddings).to("cuda"))
+            # else:
+            #     instances[ptr].set("reid_embeddings", [])
         # output
         return instances, losses
 
+    def dump_instance(self, output):
+        print(f"Available fields in the result: {','.join([o for o in output.get_fields().keys()])}")
+        _classes = list(output.get("pred_classes").cpu().numpy())
+        if len(_classes) > 0:
+            _boxes = list(output.get("pred_boxes").to("cpu"))
+            _masks = list(output.get("pred_masks").cpu().numpy())
+            _scores = list(output.get("scores").cpu().numpy())
+            print("Boxes:")
+            for c, b, s in zip(_classes, _boxes, _scores):
+                print(f"Class: {c} Score: {s} = {b}")
+
+    def dump_image(self, image):    # Convert ImageList to a batch of tensors
+        print(f"Input image details: Max={image.max()} Min={image.min()} shape={image.shape}")
+        img = (image.cpu().permute(1, 2, 0).numpy())[ :, :, [2, 1, 0]]
+        img = np.interp(img, (img.min(), img.max()), (0, 255)).astype(np.uint8)
+        print(f"Render image details: max={np.max(img)} min={np.min(img)} shape={img.shape}")
+        plt.imshow( img )
+        plt.show()

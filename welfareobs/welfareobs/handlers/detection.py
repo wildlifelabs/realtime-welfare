@@ -48,13 +48,15 @@ class DetectionHandler(AbstractHandler):
     def run(self):
         output: list[Individual] = []
         prediction = predict(
-            image_tensor(
+            [image_tensor(
                 self.__current_frame.image,
                 self.__dimensions
-            ),
+            )],
             self.__model
         )
-        prediction = prediction["instances"]
+        # We assume we are only dealing with one prediction
+        # TODO: change the approach to merge the predictions (one detector for 3 images) here
+        prediction = prediction[0]["instances"]
         _reids = list(prediction.get("reid_embeddings").cpu().numpy().flatten())
         _classes = list(prediction.get("pred_classes").cpu().numpy())
         _boxes = list(prediction.get("pred_boxes").cpu().numpy())

@@ -76,7 +76,6 @@ class Runner(object):
         while trigger:
             self.__performance_monitor.track_start()
             for ps in self.__pipeline_steps:
-                print(f"run pass {run_count} step {ps.label}")
                 for job in ps.jobs:
                     src_jobs = [self.__job_map[o] for o in job.required_jobs_for_inputs()]
                     job.set_inputs([o.get_output() for o in src_jobs])

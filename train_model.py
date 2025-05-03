@@ -78,10 +78,16 @@ for ptr in sets:
         root=config[f"{ptr}.root"],
         annotations_file=config[f"{ptr}.annotations-filename"],
         transform = T.Compose([
-            T.Resize(size=dimensions),
-            T.CenterCrop(size=[dimensions, dimensions]),
+            T.Resize(
+                size=(size,size),
+                interpolation=torchvision.transforms.InterpolationMode.BILINEAR,
+                max_size=None,
+                antialias=True
+            )            
+            # T.Resize(size=dimensions),
+            # T.CenterCrop(size=[dimensions, dimensions]),
             T.ToTensor(),
-            T.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+            # T.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
         ]),
         img_load="full", # "bbox_mask",
         col_path="path",

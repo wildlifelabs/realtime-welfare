@@ -4,13 +4,11 @@
     "performance-history-size": "100",
     "threadpool-size": "5"
   },
-  "pipeline": ["step-1", "step-2", "step-3", "step-4", "step-5", "step-6", "step-7"],
+  "pipeline": ["step-1", "step-2", "step-3", "step-4", "step-7"],
   "step-1": ["camera-1"],
   "step-2": ["detection-1"],
   "step-3": ["location-1"],
   "step-4": ["aggregator"],
-  "step-5": ["payload-create"],
-  "step-6": ["payload-extract"],
   "step-7": ["local-save"],
   "camera-1": {
     "handler": "welfareobs.handlers.camera.FauxCameraHandler",
@@ -31,19 +29,9 @@
     "input": ["location-1"],
     "config": "/project/config/aggregator.json"
   },
-  "payload-create": {
-    "handler": "welfareobs.handlers.payload_create.PayloadCreateHandler",
-    "input": "aggregator",
-    "config": "config/payload-create.json"
-  },
-  "payload-extract": {
-    "handler": "welfareobs.handlers.payload_extract.PayloadExtractHandler",
-    "input": "payload-create",
-    "config": "config/payload-extract.json"
-  },
   "local-save": {
     "handler": "welfareobs.handlers.filesystem.SaveIntersectHandler",
-    "input": "payload-create",
-    "config": ""
+    "input": "aggregator",
+    "config": "/project/final-output.csv"
   }
 }

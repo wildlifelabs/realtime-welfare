@@ -1,3 +1,4 @@
+# core tools
 wheel
 cryptography
 pyopenssl
@@ -9,6 +10,8 @@ cytoolz
 tqdm
 typer
 pygments
+
+# scientific
 scipy
 numpy
 pandas
@@ -19,17 +22,21 @@ seaborn
 bokeh
 shapely
 scikit-image
+
+# Jupyter
 jupyter-server-proxy
-jupyterlab-lsp
-python-lsp-server
 jupyterlab-mathjax2
 jupyterlab
+jupyterlab-lsp
+jupyterlab-widgets
 papermill
-ipywidgets
 nbconvert
 ipython
 ipykernel
-spyder
+ipywidgets
+
+
+# pytorch and opencv
 tensorboard
 opencv-python
 pytorch-metric-learning
