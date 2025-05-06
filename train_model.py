@@ -74,20 +74,21 @@ for ptr in sets:
     outpath = f"/project/data/results/{name}"
     print(f"Processing {ptr} to {outpath}.")
     os.makedirs(outpath, exist_ok=True)
+    # WelfareObsDataset, WildlifeDataset and ImageDataset all return RGB images 
     dataset=WelfareObsDataset(
         root=config[f"{ptr}.root"],
         annotations_file=config[f"{ptr}.annotations-filename"],
         transform = T.Compose([
             T.Resize(
-                size=(size,size),
-                interpolation=torchvision.transforms.InterpolationMode.BILINEAR,
+                size=(dimensions,dimensions),
+                interpolation=T.InterpolationMode.BILINEAR,
                 max_size=None,
                 antialias=True
-            )            
+            ),  # Resize the input image to the given size            
             # T.Resize(size=dimensions),
             # T.CenterCrop(size=[dimensions, dimensions]),
-            T.ToTensor(),
-            # T.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+            T.ToTensor(),  # Convert a PIL Image or ndarray to tensor and scale the values 0->255 to 0.0->1.0
+            T.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),  # output[channel] = (input[channel] - mean[channel]) / std[channel] (this is the mapping for ImageNet RGB)
         ]),
         img_load="full", # "bbox_mask",
         col_path="path",
@@ -135,7 +136,7 @@ for ptr in sets:
         epochs=config.as_int(f"{ptr}.trainer-epochs"),
         device='cuda',
     )
-    print("Training...")
+    print(f"Training {config.as_int(f"{ptr}.trainer-epochs")} epochs...")
     trainer.train()
     trainer.save(outpath)
     extractor = DeepFeatures(backbone,
@@ -146,7 +147,8 @@ for ptr in sets:
     print("Extracting features...")
     features = extractor(dataset)
     features.save(os.path.join(outpath, f"similarity.pkl"))
-    ####
-    # TODO: add validation pass
+
+####
+# TODO: add validation pass
 
     

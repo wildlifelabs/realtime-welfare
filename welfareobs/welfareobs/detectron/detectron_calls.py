@@ -4,24 +4,21 @@ import torchvision
 from PIL import Image
 from welfareobs.utils.performance_monitor import PerformanceMonitor
 import numpy as np
-
-
-class BGRTransform:
-    def __call__(self, img):
-        return img[[2, 1, 0], :, :]
+from welfareobs.utils.bgr_transform import BGRTransform 
 
 
 def image_tensor(image, size):
     """tx image, returns cuda tensor"""
     transform = torchvision.transforms.Compose([
-        torchvision.transforms.PILToTensor(),
+        torchvision.transforms.PILToTensor(), # Convert a PIL Image or ndarray to tensor and scale the values 0->255 to 0.0->1.0
         torchvision.transforms.Resize(
             size=(size,size),
             interpolation=torchvision.transforms.InterpolationMode.BILINEAR,
             max_size=None,
             antialias=True
         ),
-        BGRTransform()
+        # note that we do NOT normalise the image because that is happening inside Detectron2
+        BGRTransform()  # since our data source is RGB
     ])
     image = transform(image)
     return image.cuda()

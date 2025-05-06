@@ -83,6 +83,5 @@ class WelfareObsDataset(WildlifeDataset):
         df = df.drop(['image_id', 'file_name', 'category_id'], axis=1)
         # df = df.drop(['image_id', 'file_name', 'supercategory', 'category_id'], axis=1)
         df.rename({'id': 'image_id'}, axis=1, inplace=True)
-
         super().__init__(df, path_images, transform, img_load, col_path, col_label, load_label)
         

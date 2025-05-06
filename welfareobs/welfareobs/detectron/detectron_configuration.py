@@ -45,6 +45,7 @@ constants = dict(
     # std has been absorbed into its conv1 weights, so the std needs to be set 1.
     # Otherwise, you can use [57.375, 57.120, 58.395] (ImageNet std)
     imagenet_bgr256_std=[1.0, 1.0, 1.0],
+    # imagenet_bgr256_std=[57.375, 57.120, 58.395]
 )
 
 

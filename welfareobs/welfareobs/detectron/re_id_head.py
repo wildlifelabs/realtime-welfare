@@ -1,10 +1,12 @@
 import torch
 import torch.nn as nn
 from wildlife_tools.features import DeepFeatures
-from wildlife_tools.similarity import CosineSimilarity
+from wildlife_tools.similarity import CosineSimilarity 
+from wildlife_tools.similarity.cosine import cosine_similarity
 from wildlife_tools.inference import KnnClassifier
 from wildlife_tools.data import WildlifeDataset, FeatureDataset
 import timm
+import numpy as np
 
 
 class ReIdHead(nn.Module):
@@ -32,17 +34,18 @@ class ReIdHead(nn.Module):
         self.features_database = features_database
 
     def forward(self, x, labels=None):
-        print(f"ReId Head {x}")
-        output = self.extractor(x)
-        print(f"Output: {type(output)} {len(output)}")
-        matcher = CosineSimilarity()
-        result = KnnClassifier(
-            k=1,
-            database_labels=self.features_database.labels_string
-        )(
-            matcher(query=output, database=self.features_database)
-        )
-        print(result)
-        return result
-        # print(result)
+        ex = self.extractor(x)
+        # matcher = CosineSimilarity()
+        # to handle batch inference capability, this has been unrolled (differs from original paper)
+        output = []
+        for item in ex:
+            output.append(
+                KnnClassifier(
+                    k=1,
+                    database_labels=self.features_database.labels_string
+                )(
+                    cosine_similarity(torch.tensor(np.asarray([item[0]])), self.features_database.features)
+                )
+            )
+        return output
 

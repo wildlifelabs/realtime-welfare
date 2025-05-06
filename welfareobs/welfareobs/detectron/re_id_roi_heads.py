@@ -7,9 +7,11 @@ from welfareobs.detectron.re_id_head import ReIdHead
 from detectron2.structures import Boxes, ImageList, Instances
 from typing import Optional, List
 import json
-from welfareobs.utils.performance_monitor import PerformanceMonitor
+# from welfareobs.utils.performance_monitor import PerformanceMonitor
 import matplotlib.pyplot as plt
 import numpy as np
+from welfareobs.utils.bgr_transform import BGRTransform 
+import torchvision.transforms as T
 
 
 class ReIdROIHeads(StandardROIHeads):
@@ -43,6 +45,16 @@ class ReIdROIHeads(StandardROIHeads):
         super().__init__(**kwargs)
         self.reid_head: ReIdHead = reid_head
         self.classes_to_reid: list = classes_to_reid
+        self.reid_tx = T.Compose([
+            T.Resize(
+                size=(self.reid_head.input_dim, self.reid_head.input_dim),
+                interpolation=T.InterpolationMode.BILINEAR,
+                max_size=None,
+                antialias=True
+            ),  # Resize the input image to the given size
+            BGRTransform(),  # since our data source is BGR this will reverge it back to RGB
+            T.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)), # renormalise fragments as RGB      
+        ])
 
     def forward(
             self,
@@ -53,8 +65,10 @@ class ReIdROIHeads(StandardROIHeads):
     ) -> (list[Instances], dict[str, torch.Tensor]):
         instances, losses = super().forward(images, features, proposals, targets)
         for ptr in range(len(instances)):
-            self.dump_image(images[ptr])
-            self.dump_instance(instances[ptr])
+            # debug source image
+            # self.dump_image(images[ptr])
+            # debug instances
+            # self.dump_instance(instances[ptr])
             mask_logits = instances[ptr].pred_masks  # Shape: (N, 1, H, W)
             reid_embeddings = [torch.tensor(-1)] * mask_logits.shape[0]
             reid_proposals = {}
@@ -62,21 +76,20 @@ class ReIdROIHeads(StandardROIHeads):
                 # Don't bother trying to reid anything we are not interested in
                 c = instances[ptr].pred_classes[i]  
                 if c not in self.classes_to_reid:
-                    # print(f"IGNORED re_roi_heads:forward {ptr}")
                     continue
                 # convert to a set of proposals (multiple individuals)
-                # print(instances[ptr].pred_boxes[i].tensor.cpu().numpy())
                 x1, y1, x2, y2 = instances[ptr].pred_boxes[i].tensor[0].cpu().numpy()
                 x1, y1, x2, y2 = map(int, [x1, y1, x2, y2])
                 cropped_region = images[ptr][:,y1:y2, x1:x2]
-                cropped_region = F.interpolate(
-                    cropped_region.unsqueeze(0),
-                    size=(self.reid_head.input_dim, self.reid_head.input_dim),
-                    mode="bilinear",
-                    align_corners=False
-                )
-                reid_proposals[i] = cropped_region
-                print(f"re_roi_heads:forward Instance {ptr}, Proposal = {i} @ {[x1, y1, x2, y2]}")
+                # cropped_region = F.interpolate(
+                #     cropped_region.unsqueeze(0),
+                #     size=(self.reid_head.input_dim, self.reid_head.input_dim),
+                #     mode="bilinear",
+                #     align_corners=False
+                # )
+                reid_proposals[i] = self.reid_tx(cropped_region).unsqueeze(0) # Add zero batch to left
+                # debug reid proposals
+                # self.dump_crop(reid_proposals[i])
             if len(reid_proposals.keys()) > 0:
                 tmp_embeddings = self.reid_head.forward([(reid_proposals[o],0) for o in reid_proposals.keys()])
                 for index, offset in enumerate(reid_proposals.keys()):
@@ -99,10 +112,19 @@ class ReIdROIHeads(StandardROIHeads):
             for c, b, s in zip(_classes, _boxes, _scores):
                 print(f"Class: {c} Score: {s} = {b}")
 
-    def dump_image(self, image):    # Convert ImageList to a batch of tensors
-        print(f"Input image details: Max={image.max()} Min={image.min()} shape={image.shape}")
-        img = (image.cpu().permute(1, 2, 0).numpy())[ :, :, [2, 1, 0]]
+    def dump_crop(self, image):    # Convert ImageList to a batch of tensors
+        self.debug_np("Crop -> input", image)
+        img = (image.cpu().squeeze(0).permute(1,2,0).numpy())[ :, : ,:]
         img = np.interp(img, (img.min(), img.max()), (0, 255)).astype(np.uint8)
-        print(f"Render image details: max={np.max(img)} min={np.min(img)} shape={img.shape}")
         plt.imshow( img )
         plt.show()
+    
+    def dump_image(self, image):    # Convert ImageList to a batch of tensors
+        self.debug_np("Image -> input", image)
+        img = (image.cpu().permute(1, 2, 0).numpy())[ :, :, [2, 1, 0]]
+        img = np.interp(img, (img.min(), img.max()), (0, 255)).astype(np.uint8)
+        plt.imshow( img )
+        plt.show()
+
+    def debug_np(self, label, src):
+        print(f"{label} details: Max={src.max()} Min={src.min()} shape={src.shape}")
