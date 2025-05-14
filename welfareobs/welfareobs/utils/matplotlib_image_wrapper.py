@@ -42,6 +42,7 @@ class MatPlotLibImageWrapper(object):
 
     def draw_points(self, points: Union[np.ndarray, List[Point2D]]):
         if type(points) == np.ndarray:
+            # print(f"Points shape: {points.shape}")
             for i in range(points.shape[0]):
                 cv2.circle(self.__img, (to_int(points[i, 0]), to_int(points[i, 1])), 1, self.__ink, 2)
         else:

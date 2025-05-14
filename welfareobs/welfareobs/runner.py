@@ -144,8 +144,7 @@ class Runner(object):
         #
         if not self.__config.as_bool("settings.configuration-name"):
             raise SyntaxError("Missing settings.configuration-name")
-        if not self.__config.as_bool("settings.threadpool-size"):
-            raise SyntaxError("Missing settings.threadpool-size")
+        temp = self.__config["settings.threadpool-size"]
         if not self.__config.as_bool("settings.performance-history-size"):
             raise SyntaxError("Missing settings.performance-history-size")
         steps = self.__config.as_list("pipeline")

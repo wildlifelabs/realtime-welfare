@@ -2,6 +2,5 @@
   "dimensions": "384",
   "reid-model-root": "/project/data/results/wod-md",
   "reid-timm-backbone": "hf-hub:BVRA/wildlife-mega-L-384",
-  "segmentation-checkpoint": "/project/data/detectron2_models/mask_rcnn_R_101_FPN_3x/model_final_a3ec72.pkl",
-  "debug-enable": "False"
+  "segmentation-checkpoint": "/project/data/detectron2_models/mask_rcnn_R_101_FPN_3x/model_final_a3ec72.pkl"
 }

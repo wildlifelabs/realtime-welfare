@@ -1,4 +1,5 @@
 {
   "dbscan-eps": "2.0",
-  "min-samples": "1"
+  "min-samples": "1",
+  "individuals": ["Zarafa", "Ebo", "Jimiyu", "Kito"]
 }

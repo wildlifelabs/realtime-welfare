@@ -2,7 +2,7 @@
   "settings":{
     "configuration-name": "example without RTSP",
     "performance-history-size": "100",
-    "threadpool-size": "5"
+    "threadpool-size": "0"
   },
   "pipeline": ["step-1", "step-2", "step-3", "step-4", "step-7"],
   "step-1": ["camera-1"],
@@ -12,11 +12,11 @@
   "step-7": ["local-save"],
   "camera-1": {
     "handler": "welfareobs.handlers.camera.FauxCameraHandler",
-    "config": "/project/data/wod_2025/20250219/"
+    "config": "/project/config/fake-camera.json"
   },
   "detection-1": {
     "handler": "welfareobs.handlers.detection.DetectionHandler",
-    "input": "camera-1",
+    "input": ["camera-1"],
     "config": "/project/config/detection.json"
   },
   "location-1": {

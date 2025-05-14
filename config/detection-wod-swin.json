@@ -1,0 +1,6 @@
+{
+  "dimensions": "384",
+  "reid-model-root": "/project/data/results/wod-swin",
+  "reid-timm-backbone": "swin_large_patch4_window12_384",
+  "segmentation-checkpoint": "/project/data/detectron2_models/mask_rcnn_R_101_FPN_3x/model_final_a3ec72.pkl"
+}

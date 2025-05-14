@@ -24,6 +24,7 @@ from typing import Optional
 import numpy as np
 import cv2
 from sympy import Point2D
+from scipy.ndimage import zoom
 from welfareobs.utils.image_wrapper import ImageWrapper
 from welfareobs.utils.matplotlib_image_wrapper import MatPlotLibImageWrapper
 from welfareobs.utils.projection_overlay import ProjectionOverlay
@@ -34,7 +35,7 @@ class ProjectionTransformer(object):
     def __init__(self):
         self.warped_grid_image: Optional[np.ndarray] = None
 
-    def load(self, filename):
+    def load(self, filename, target_w=None, target_h=None):
         """
         Load ProjectionTransformer
         :param filename: name of the saved PT
@@ -42,6 +43,17 @@ class ProjectionTransformer(object):
         """
         p = pickle.load(open(filename, "rb"))
         self.warped_grid_image = p["warped_grid_image"]
+        if target_w is not None and target_h is not None:
+            self.warped_grid_image = zoom(
+                self.warped_grid_image, 
+                (
+                    target_h / self.warped_grid_image.shape[0], 
+                    target_w / self.warped_grid_image.shape[1], 
+                    1
+                ), 
+                order=1
+            )
+        print(f"Loaded {filename}: dims=({self.warped_grid_image.shape})")
 
     def save(self, filename):
         """
@@ -98,35 +110,28 @@ class ProjectionTransformer(object):
             r.draw_points(points)
         r.render()
 
-    def __interp(self, output):
-        if (output == 255) or (output == 0):
-            # note: we set 255 and 0 to be reserved 'overflow' values
+    def __interp(self, src):
+        """
+        interperet the lut values:
+        * we start with an unsigned int (0 - 255) 
+        * we want to center this around the calibration point (center of the vignette) so we subtract 128
+        * we take limits 128 or -128 as no longer being measurable and anything above or below is NaN.
+        """
+        output: int = int(src) - 128
+        if (output > 128) or (output < -128):
             return np.nan
-        else:
-            # note: since we make our mask with 128 = center, we need to subtract 128 from lookup
-            return output - 128
+        return output
 
+    def get_xz_array(self, src) -> np.ndarray:
+        return np.array([self.get_xz(*pair) for pair in src])
+    
     def get_xz(self, src_x, src_y) -> (float|int, float|int):
-        return (
+        output = (
             self.__interp(self.warped_grid_image[src_y,src_x,1]),
             self.__interp(self.warped_grid_image[src_y,src_x,0])
         )
-
-    def get_xz_mask_lower_intersect(self, mask, clipping_threshold):
-        """Extracts bottom-most (lowest Y) points of an object mask for each X coordinate."""
-        y_indices, x_indices = np.where(mask > 0)
-        bottom_points = {}
-        max_y = 0
-        for x, y in zip(x_indices, y_indices):
-            if x not in bottom_points or y > bottom_points[x]:
-                bottom_points[x] = y
-                if y > max_y:
-                    max_y = y
-        # setting clipping threshold to 0 allows everything.
-        if clipping_threshold == 0:
-            clipping_threshold = max_y
-        # this drops points that are too far away from the lowest Y point.
-        return [self.get_xz(x, y) for x, y in bottom_points.items() if y >= (max_y - clipping_threshold)]
+        # print(f"src=({src_x},{src_y}) out=({output[0]},{output[1]})")
+        return output
 
     def __get_h_matrix(self, source, destination):
         # https://github.com/Socret360/understanding-homography/blob/main/homography.py

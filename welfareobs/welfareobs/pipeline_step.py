@@ -64,11 +64,15 @@ class PipelineStep(object):
 
     def run(self):
         self.__performance_monitor.track_start()
-        with concurrent.futures.ThreadPoolExecutor(max_workers=self.__threadpool_size) as executor:
-            futures = []
+        if self.__threadpool_size < 1:
             for job in self.__jobs:
-                futures.append(executor.submit(job.run))
-            while any(not f.done() for f in futures):
-                pass
+                job.run()
+        else:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=self.__threadpool_size) as executor:
+                futures = []
+                for job in self.__jobs:
+                    futures.append(executor.submit(job.run))
+                while any(not f.done() for f in futures):
+                    pass
         self.__performance_monitor.track_end()
         print(str(self.__performance_monitor))

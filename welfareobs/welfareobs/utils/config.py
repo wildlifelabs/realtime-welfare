@@ -135,6 +135,7 @@ class Config(object):
             return True
         except (KeyError, ImportError, AttributeError) as ex:
             print(ex)
+            raise SyntaxError(str(ex), ex)
             return False
 
     def instance(self, key: str):
