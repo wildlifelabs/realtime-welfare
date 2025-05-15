@@ -1,0 +1,8 @@
+{
+    "camera-name": "camera-1",
+    "camera-projection-filename": "config/camera-1.pkl",
+    "y-mask-clipping-threshold": "5",
+    "target-width": "384",
+    "target-height": "384",
+    "debug-enable": "False"
+}

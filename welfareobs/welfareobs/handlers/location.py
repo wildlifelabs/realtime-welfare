@@ -38,19 +38,25 @@ class LocationHandler(AbstractHandler):
 
     configuration file looks like this:
     {
+      "camera-name": "camera-1"
       "camera-projection-filename": "config/camera-1.pkl",
       "y-mask-clipping-threshold": "100",
       "target-width": "384",
       "target-height": "384"
       "debug-enable": "True"
     }
+
+    locations FILTER the input of a detection by the named camera. 
+    The name is defined in the main configuration.
+    
     """
     def __init__(self, name: str, inputs: list[str], param: str):
         super().__init__(name, inputs, param)
         self.__individual_detections: list[Individual]|None = None
         self.__pt: ProjectionTransformer = ProjectionTransformer()
         self.__clipping_threshold: int = 0
-        self.__debug_enable = False        
+        self.__debug_enable = False
+        self.__camera_name_filter = ""
 
     def setup(self):
         cnf: Config = Config(self.param)
@@ -60,7 +66,8 @@ class LocationHandler(AbstractHandler):
             target_h=cnf.as_int("target-height")
         )
         self.__clipping_threshold = cnf.as_int("y-mask-clipping-threshold")
-        self.__debug_enable = cnf.as_bool("debug-enable")      
+        self.__debug_enable = cnf.as_bool("debug-enable")
+        self.__camera_name_filter = cnf.as_string("camera-name")
     
     def run(self):
         pass
@@ -86,23 +93,28 @@ class LocationHandler(AbstractHandler):
             clipping_threshold = max_y
         # this drops points that are too far away from the lowest Y point.
         return np.array([(x, y) for x, y in bottom_points.items() if y >= (max_y - clipping_threshold)])
-        
+
+    def valid_camera(self, individual: Individual) -> bool:
+        # may need to make this more forgiving?
+        return individual.camera_name == self.__camera_name_filter
+    
     def get_output(self) -> any:
         output: list[Intersect] = []
         i=0
         for detection in self.__individual_detections:
-            output.append(
-                Intersect(
-                    identity=detection.identity,
-                    intersect=self.__pt.get_xz_array(
-                        self.get_xy_mask_lower_intersect(
-                            detection.mask, 
-                            self.__clipping_threshold
-                        )
-                    ),
-                    timestamp=detection.timestamp
+            if self.valid_camera(detection):
+                output.append(
+                    Intersect(
+                        identity=detection.identity,
+                        intersect=self.__pt.get_xz_array(
+                            self.get_xy_mask_lower_intersect(
+                                detection.mask, 
+                                self.__clipping_threshold
+                            )
+                        ),
+                        timestamp=detection.timestamp
+                    )
                 )
-            )
         if self.__debug_enable:
             self.render_output()
         return output

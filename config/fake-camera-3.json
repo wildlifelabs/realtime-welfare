@@ -1,0 +1,10 @@
+{
+    "root": "/project/data/wod_2025",
+    "file-types": [".jpeg",".jpg",".png"],
+    "camera-filter": "c3",
+    "hour-start-filter": "-1",
+    "hour-end-filter": "-1",
+    "timestamp-start": "2025-03-10 10:28:07",
+    "timestamp-delta-seconds": "5",
+    "debug-enable": "False"    
+}

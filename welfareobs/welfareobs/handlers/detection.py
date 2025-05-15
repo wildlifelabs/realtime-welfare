@@ -110,6 +110,7 @@ class DetectionHandler(AbstractHandler):
                     if _reids[i] != -1:
                         output.append(
                             Individual(
+                                camera_name=self.__current_frames[index].camera_name,
                                 confidence=_scores[i],
                                 identity=_reids[i],
                                 species=_classes[i],

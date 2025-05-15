@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Module Name: 
-Description: 
+Module Name: camera.py
+Description: camera modules for RTSP and fake (filesystem feed) cameras
 
 Copyright (C) 2025 J.Cincotta
 
@@ -90,22 +90,23 @@ class FauxCameraHandler(AbstractHandler):
         self.__index = 0
         self.__timestamp = None
         self.__timestamp_delta_seconds = None
+        self.__debug_enable: bool = False
 
     def __gather(self, directory: str, camera_filter: str, hour_start_filter: int, hour_end_filter: int, suffixes: list):
         files = []
         for entry in os.listdir(directory):
-            hour = to_int_brute_force(entry[-10:-8])
-            if hour_start_filter >= 0 and hour_end_filter >= 0:
-                if hour < hour_start_filter or hour > hour_end_filter:
-                    continue
-            if entry.startswith(camera_filter):
-                path = os.path.join(directory, entry)
-                if os.path.isfile(path):
+            path = os.path.join(directory, entry)
+            if os.path.isfile(path):
+                if entry.startswith(camera_filter):
+                    hour = to_int_brute_force(entry[-10:-8])
+                    if hour_start_filter >= 0 and hour_end_filter >= 0:
+                        if hour < hour_start_filter or hour > hour_end_filter:
+                            continue
                     suffix = os.path.splitext(path)[1].lower()
                     if suffix in suffixes:
                         files.append(path)
-                elif os.path.isdir(path):
-                    files.extend(self.__gather(path, camera_filter, hour_start_filter, hour_end_filter, suffixes))
+            elif os.path.isdir(path):
+                files.extend(self.__gather(path, camera_filter, hour_start_filter, hour_end_filter, suffixes))
         return files
 
     def setup(self):
@@ -124,6 +125,7 @@ class FauxCameraHandler(AbstractHandler):
         self.__index = 0
         self.__timestamp = datetime.strptime(cnf.as_string("timestamp-start"), '%Y-%m-%d %H:%M:%S')  
         self.__timestamp_delta_seconds = cnf.as_int("timestamp-delta-seconds")
+        self.__debug_enable = cnf.as_bool("debug-enable")
         print(f"found {len(self.__files)} files")
 
     def teardown(self):
@@ -145,10 +147,12 @@ class FauxCameraHandler(AbstractHandler):
             self.name,
             self.__timestamp
         )
-        print(f"Filename: {self.__files[self.__index]} stamp: {self.__timestamp.timestamp()} ({self.__timestamp})")
+        if self.__debug_enable:
+            print(f" - Filename: {self.__files[self.__index]} stamp: {self.__timestamp.timestamp()} ({self.__timestamp})")
         self.__index += 1
         self.__timestamp = self.__timestamp + timedelta(seconds=self.__timestamp_delta_seconds)
-        # self.dump_output(output)
+        if self.__debug_enable:
+            self.dump_output(output)
         return output
 
     def dump_output(self, output: Frame):

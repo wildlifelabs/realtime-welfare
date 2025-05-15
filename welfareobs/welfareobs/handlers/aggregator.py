@@ -22,7 +22,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 from sklearn.cluster import DBSCAN
 import numpy as np
-
+from numpy.exceptions import AxisError
 from welfareobs.handlers.abstract_handler import AbstractHandler
 from welfareobs.models.intersect import Intersect
 from welfareobs.utils.config import Config
@@ -57,17 +57,19 @@ class AggregatorHandler(AbstractHandler):
         self.__names = cnf.as_list("individuals")
 
     def run(self):
-        print(f"Aggregator got {len(self.__individuals.keys())} giraffe")
+        print(f" - Aggregator got {len(self.__individuals.keys())} giraffe")
         self.__output = []
         for individual in self.__individuals.keys():
-            # use some fancy list comprehension to expand all the intersect arrays in all the intersect classes
-            coords = np.array([coord for element in self.__individuals[individual] for coord in element.intersect])
-            mask = ~np.isnan(coords).all(axis=1)
-            d: DBSCAN = DBSCAN(eps=self.__dbscan_eps, min_samples=self.__min_samples)
-            d.fit_predict(coords[mask])
-            print(f"Coordinates for {self.__names[individual - 1]}: source={coords.shape} valid={coords[mask].shape} clustered={d.components_.shape}")
-            self.__output.append(Intersect(individual, intersect=[tuple(coord) for coord in d.components_], timestamp=self.__individuals[individual][0].timestamp))
-            print(self.__individuals[individual][0].timestamp)
+            try:
+                # use some fancy list comprehension to expand all the intersect arrays in all the intersect classes
+                coords = np.array([coord for element in self.__individuals[individual] for coord in element.intersect])
+                mask = ~np.isnan(coords).all(axis=1)
+                d: DBSCAN = DBSCAN(eps=self.__dbscan_eps, min_samples=self.__min_samples)
+                d.fit_predict(coords[mask])
+                print(f" - Coordinates for {self.__names[individual - 1]}: source={coords.shape} valid={coords[mask].shape} clustered={d.components_.shape}")
+                self.__output.append(Intersect(individual, intersect=[tuple(coord) for coord in d.components_], timestamp=self.__individuals[individual][0].timestamp))
+            except AxisError as err:
+                print(f" - Coordinates for {self.__names[individual - 1]} failed. {err}")
     def teardown(self):
         pass
 

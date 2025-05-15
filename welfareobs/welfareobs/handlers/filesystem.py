@@ -48,7 +48,7 @@ class SaveIntersectHandler(AbstractHandler):
             if not csvfile.tell():  # Check if file is empty
                 writer.writerow(['sample', 'identity', 'intersect', 'timestamp'])
             if len(self.__data) > 0:
-                print(f"Writing sample {self.__sample_run} with {len(self.__data[0])} individuals")
+                print(f" - Writing sample {self.__sample_run} with {len(self.__data[0])} individuals")
                 for item in self.__data[0]:
                     writer.writerow([self.__sample_run, item.identity, self.__render(item.intersect), item.timestamp.strftime('%Y-%m-%d %H:%M:%S')])
             self.__sample_run += 1

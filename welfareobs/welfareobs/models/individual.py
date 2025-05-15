@@ -30,6 +30,7 @@ class Individual:
     """
     A data class that represents an individual animal
     """
+    camera_name: str
     confidence: float
     identity: str
     species: str

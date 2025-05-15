@@ -19,9 +19,10 @@ RUN apt-get install -yqq --fix-missing git wget bzip2 openssl build-essential li
 RUN apt-get install -yqq --fix-missing libhdf5-serial-dev libopenblas-dev libnuma1 libnuma-dev libpng-dev zlib1g-dev gfortran 
 # Jupyter Misc
 RUN apt-get install -yqq --fix-missing nodejs 
-RUN apt-get install -yqq --fix-missing pandoc
-# Cleanup
+RUN apt-get install -yqq --fix-missing pandoc texlive-full
+# update-alternatives support
 RUN apt-get install -yqq --fix-missing debianutils
+# cleanup
 RUN apt-get autoremove -y
 # RUN timedatectl set-timezone Sydney/Australia
 
@@ -34,15 +35,16 @@ RUN mkdir /project
 RUN mkdir /project/data
 
 WORKDIR /script
-COPY ./bin/requirements.txt /script
-COPY ./bin/requirements2.txt /script
-COPY ./bin/jupyter.txt /script
+# the order of these allows the least impact when updating dependencies.
 COPY ./bin/get-pip.py /script
 # RUN wget https://bootstrap.pypa.io/get-pip.py
 RUN python /script/get-pip.py
 RUN python -m pip install --upgrade pip
+COPY ./bin/requirements.txt /script
 RUN python -m pip install -r /script/requirements.txt
+COPY ./bin/requirements2.txt /script
 RUN python -m pip install -r /script/requirements2.txt
+COPY ./bin/jupyter.txt /script
 RUN python -m pip install -r /script/jupyter.txt
 
 ENV PYTHONPATH=/project/wildlife-datasets:${PYTHONPATH}

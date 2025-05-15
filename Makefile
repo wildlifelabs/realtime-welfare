@@ -51,6 +51,10 @@ jupyter: build ## Start Jupyter
 	echo $(DATASET_ROOT)
 	docker run --shm-size=1g -it --privileged --gpus all --rm -p 8888:8888 -p 8008:8008 -v ./:/project -v $(DATASET_ROOT):/project/data --name welfare-obs-instance welfare-obs /script/jupyter.sh /project
 
+run-pipeline: ## Start Jupyter
+	echo $(DATASET_ROOT)
+	docker run --shm-size=1g -it --privileged --gpus all --rm -p 8888:8888 -p 8008:8008 -v ./:/project -v $(DATASET_ROOT):/project/data --name welfare-obs-instance welfare-obs /script/run_ipynb.sh /project pipeline.ipynb
+
 connect: ## Connect to CUDA Container
 	docker exec -it welfare-obs-instance bash
 
