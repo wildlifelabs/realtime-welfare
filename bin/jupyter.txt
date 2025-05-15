@@ -1,0 +1,13 @@
+# Jupyter
+# jupyter-server-proxy
+# jupyterlab-mathjax2
+jupyterlab
+# jupyterlab-lsp
+jupyterlab-widgets
+papermill
+nbconvert
+ipython
+ipykernel
+ipywidgets
+
+

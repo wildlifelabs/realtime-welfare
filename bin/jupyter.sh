@@ -20,5 +20,10 @@ echo "9fbaaa1ce20a1159a63c0af8e8dde4695d984616e71169ae"
 # Handle killing children on exit
 trap "exit" INT TERM
 trap "kill 0" EXIT
+jupyter labextension enable @jupyterlab/completer-extension
+jupyter labextension enable @jupyterlab/fileeditor-extension
+jupyter labextension enable @jupyterlab/lsp-extension
+jupyter labextension enable @jupyterlab/notebook-extension
+jupyter labextension list
 jupyter lab --no-browser --allow-root --ip 0.0.0.0 --NotebookApp.token='9fbaaa1ce20a1159a63c0af8e8dde4695d984616e71169ae'
 

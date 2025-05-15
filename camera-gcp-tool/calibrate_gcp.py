@@ -118,7 +118,7 @@ class CalibrateCamera:
             self.update_palette()
 
     def save_clicks(self):
-        fieldnames = ["gcp", "x", "z"]
+        fieldnames = ["gcp", "original-x", "original-y", "transformed-x", "transformed-z"]
         if self.click_positions:
             file_path = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV Files", "*.csv")])
             if file_path:
@@ -129,8 +129,10 @@ class CalibrateCamera:
                         xz = self.pt.get_xz(xy[0],xy[1])
                         writer.writerow({
                             "gcp": index,
-                            "x": xz[0],
-                            "z": xz[1]
+                            "original-x": xy[0],
+                            "original-y": xy[1],
+                            "transformed-x": xz[0],
+                            "transformed-z": xz[1]
                         })
                     messagebox.showinfo("Camera GCP Tool", "Saved", icon="info")
         else:
