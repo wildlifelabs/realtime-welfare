@@ -29,6 +29,7 @@ pick
 numpy
 sympy
 matplotlib
+scipy
 
 # Camera Handler
 rtsp
