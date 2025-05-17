@@ -1,10 +1,5 @@
-# https://hub.docker.com/r/nvidia/cuda/tags?name=12.6.3-cudnn-devel-ubuntu
-FROM nvidia/cuda:12.6.3-cudnn-devel-ubuntu24.04
-ARG TARGETPLATFORM
+FROM ubuntu:24.04
 ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
-ENV TORCH_CUDA_ARCH_LIST="12.6"
-ENV PATH=/usr/local/cuda/bin:${PATH}
-ENV CPATH=/usr/local/cuda/include
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Sydney/Australia
 # Etc/UTC

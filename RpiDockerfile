@@ -1,10 +1,6 @@
-# https://hub.docker.com/r/nvidia/cuda/tags?name=12.6.3-cudnn-devel-ubuntu
-FROM nvidia/cuda:12.6.3-cudnn-devel-ubuntu24.04
+FROM ubuntu:24.04
 ARG TARGETPLATFORM
 ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
-ENV TORCH_CUDA_ARCH_LIST="12.6"
-ENV PATH=/usr/local/cuda/bin:${PATH}
-ENV CPATH=/usr/local/cuda/include
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Sydney/Australia
 # Etc/UTC
@@ -24,14 +20,14 @@ RUN mkdir /project
 RUN mkdir /project/data
 
 WORKDIR /script
-COPY ./bin/requirements.txt /script
+COPY ./bin/rpi-requirements.txt /script
 COPY ./bin/requirements2.txt /script
 COPY ./bin/get-pip.py /script
 # RUN wget https://bootstrap.pypa.io/get-pip.py
 RUN python3.13 /script/get-pip.py
 RUN pip3 install --upgrade pip
-RUN pip3 install -r /script/requirements.txt
-RUN pip3 install -r /script/requirements2.txt
+RUN pip3 install -r /script/rpi-requirements.txt
+RUN pip3 install -r /script/requirements2.txt --no-deps
 
 ENV PYTHONPATH=/project/wildlife-datasets:${PYTHONPATH}
 ENV PYTHONPATH=/project/wildlife-tools:${PYTHONPATH}

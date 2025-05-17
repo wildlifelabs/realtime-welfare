@@ -25,7 +25,17 @@ export CUDA_PATH=/usr/local/cuda
 
 help: ## This help
 	@echo "Welfare Obs Project"
+	@echo "⁖⁖⁖⁖⁖⁖⁖⁖⁖⁖⁖⁖⁖⁖⁖⁖⁖⁖⁖"
 	@echo -e "$$(grep -hE '^\S+:.*##' $(MAKEFILE_LIST) | sed -e 's/:.*##\s*/:/' -e 's/^\(.\+\):\(.*\)/\\x1b[36m\1\\x1b[m:\2/' | column -c2 -t -s :)"
+
+#### SETUP ####
+
+setup-local: ## Set up local environment
+	@python3.13 -m venv venv
+	@source venv/bin/activate;python -m pip install --upgrade pip
+	@source venv/bin/activate;python -m pip install flake8 pytest
+	@source venv/bin/activate;if [ -f bin/requirements.txt ]; then pip install -r bin/requirements.txt; fi
+	@source venv/bin/activate;if [ -f bin/requirements2.txt ]; then pip install -r bin/requirements2.txt; fi
 
 update-submodules: ## Update all submodules using GIT
 	cd wildlife-datasets;git pull origin main
@@ -35,25 +45,50 @@ update-submodules: ## Update all submodules using GIT
 init-submodules: ## Initial submodule setup
 	git submodule update --init --recursive
 
-force-rebuild: ## Forced ReBuild Docker Environment
-	docker build --no-cache -t welfare-obs -f Dockerfile .
-
-build: ## Build Docker Environment
-	docker build -t welfare-obs -f Dockerfile .
-
-jetson-force-rebuild: ## Forced ReBuild Docker Environment
-	docker build --no-cache -t welfare-obs -f JetsonDockerfile .
+#### NVIDIA JETSON ####
 
 jetson-build: ## Build Docker Environment
 	docker build -t welfare-obs -f JetsonDockerfile .
 
-jupyter: build ## Start Jupyter
+jetson-run-pipeline: ## Start Jupyter
+	echo $(DATASET_ROOT)
+	docker run --shm-size=1g -it --runtime nvidia --privileged --rm -p 8888:8888 -p 8008:8008 -v ./:/project -v $(DATASET_ROOT):/project/data --name welfare-obs-instance welfare-obs /script/run_ipynb.sh /project pipeline.ipynb
+
+#### MACINTOSH OSX ####
+
+mac-build: ## Build Docker Environment
+	docker build -t welfare-obs -f MacDockerfile .
+
+mac-run-pipeline: ## Start Jupyter
+	echo $(DATASET_ROOT)
+	docker run --shm-size=1g -it --privileged --gpus all --rm -p 8888:8888 -p 8008:8008 -v ./:/project -v $(DATASET_ROOT):/project/data --name welfare-obs-instance welfare-obs /script/run_ipynb.sh /project pipeline.ipynb
+
+#### RASPBERRY PI ####
+
+rpi-build: ## Build Docker Environment
+	docker build -t welfare-obs -f RpiDockerfile .
+
+rpi-run-pipeline: ## Start Jupyter
+	echo $(DATASET_ROOT)
+	docker run --shm-size=1g -it --privileged --gpus all --rm -p 8888:8888 -p 8008:8008 -v ./:/project -v $(DATASET_ROOT):/project/data --name welfare-obs-instance welfare-obs /script/run_ipynb.sh /project pipeline.ipynb
+
+#### LINUX X64 CUDA ####
+
+cuda-jupyter: cuda-build ## Start Jupyter
 	echo $(DATASET_ROOT)
 	docker run --shm-size=1g -it --privileged --gpus all --rm -p 8888:8888 -p 8008:8008 -v ./:/project -v $(DATASET_ROOT):/project/data --name welfare-obs-instance welfare-obs /script/jupyter.sh /project
 
-run-pipeline: ## Start Jupyter
+cuda-force-rebuild: ## Forced ReBuild Docker Environment
+	docker build --no-cache -t welfare-obs -f Dockerfile .
+
+cuda-build: ## Build Docker Environment
+	docker build -t welfare-obs -f Dockerfile .
+
+cuda-run-pipeline: ## Start Jupyter
 	echo $(DATASET_ROOT)
 	docker run --shm-size=1g -it --privileged --gpus all --rm -p 8888:8888 -p 8008:8008 -v ./:/project -v $(DATASET_ROOT):/project/data --name welfare-obs-instance welfare-obs /script/run_ipynb.sh /project pipeline.ipynb
+
+#### COMMON CONNECTION TOOLS ####
 
 connect: ## Connect to CUDA Container
 	docker exec -it welfare-obs-instance bash
@@ -64,12 +99,7 @@ train-model: ## Train the models based on config
 check-cuda: ## Check CUDA is working
 	docker exec -it welfare-obs-instance /project/bin/py.sh /project/check_cuda.py
 
-setup-local: ## Set up local environment
-	@python3.13 -m venv venv
-	@source venv/bin/activate;python -m pip install --upgrade pip
-	@source venv/bin/activate;python -m pip install flake8 pytest
-	@source venv/bin/activate;if [ -f bin/requirements.txt ]; then pip install -r bin/requirements.txt; fi
-	@source venv/bin/activate;if [ -f bin/requirements2.txt ]; then pip install -r bin/requirements2.txt; fi
+#### LOCAL CALIBRATION TOOLS WITH USER INTERFACES ####
 
 setup-calibrate-cameras: ## Setup calibrate cameras application
 	$(MAKE) -C calibrate-camera-tool setup

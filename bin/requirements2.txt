@@ -1,4 +1,4 @@
 # due to the way pip works, you need to install these after the rest
-git+https://github.com/cvg/glue-factory.git@1f56839db2242929960d70f85bfac6c19ef2821c
+# git+https://github.com/cvg/glue-factory.git@1f56839db2242929960d70f85bfac6c19ef2821c
 git+https://github.com/facebookresearch/detectron2.git
 
