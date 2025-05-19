@@ -19,14 +19,14 @@ RUN mkdir /project
 RUN mkdir /project/data
 
 WORKDIR /script
-COPY ./bin/requirements.txt /script
+COPY ./bin/mac-requirements.txt /script
 COPY ./bin/requirements2.txt /script
 COPY ./bin/get-pip.py /script
 # RUN wget https://bootstrap.pypa.io/get-pip.py
 RUN python3.13 /script/get-pip.py
 RUN pip3 install --upgrade pip
-RUN pip3 install -r /script/requirements.txt
-RUN pip3 install -r /script/requirements2.txt
+RUN pip3 install -r /script/mac-requirements.txt
+RUN pip3 install -r /script/requirements2.txt --no-deps
 
 ENV PYTHONPATH=/project/wildlife-datasets:${PYTHONPATH}
 ENV PYTHONPATH=/project/wildlife-tools:${PYTHONPATH}

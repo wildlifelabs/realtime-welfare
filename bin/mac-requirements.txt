@@ -57,7 +57,7 @@ fairscale
 shapely
 pygments>=2.2
 psutil
-panopticapi
+# panopticapi
 
 torch --index-url https://download.pytorch.org/whl/cpu
 torchvision --index-url https://download.pytorch.org/whl/cpu
