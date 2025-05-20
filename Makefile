@@ -30,12 +30,13 @@ help: ## This help
 
 #### SETUP ####
 
-setup-local: ## Set up local environment
+setup-local: ## Set up local environment (for using an IDE during development)
 	@python3.13 -m venv venv
 	@source venv/bin/activate;python -m pip install --upgrade pip
 	@source venv/bin/activate;python -m pip install flake8 pytest
 	@source venv/bin/activate;if [ -f bin/requirements.txt ]; then pip install -r bin/requirements.txt; fi
 	@source venv/bin/activate;if [ -f bin/requirements2.txt ]; then pip install -r bin/requirements2.txt; fi
+	@source venv/bin/activate;if [ -f bin/jupyter.txt ]; then pip install -r bin/jupyter.txt; fi
 
 update-submodules: ## Update all submodules using GIT
 	cd wildlife-datasets;git pull origin main
@@ -47,53 +48,53 @@ init-submodules: ## Initial submodule setup
 
 #### NVIDIA JETSON ####
 
-jetson-build: ## Build Docker Environment
+jetson-build: ## Build Docker Environment (Jetson)
 	docker build -t welfare-obs -f JetsonDockerfile .
 
-jetson-run-pipeline: ## Start Jupyter
+jetson-run-pipeline: ## Run the Jetson CUDA pipeline (Jetson Xavier headless)
 	echo $(DATASET_ROOT)
 	docker run --shm-size=1g -it --runtime nvidia --privileged --rm -p 8888:8888 -p 8008:8008 -v ./:/project -v $(DATASET_ROOT):/project/data --name welfare-obs-instance welfare-obs /script/run_ipynb.sh /project pipeline.ipynb
 
 #### MACINTOSH OSX ####
 
-mac-build: ## Build Docker Environment
+mac-build: ## Build Docker Environment (Mac)
 	docker build -t welfare-obs -f MacDockerfile .
 
-mac-run-pipeline: ## Start Jupyter
+mac-run-pipeline: ## Run the CUDA pipeline (Mac headless)
 	echo $(DATASET_ROOT)
 	docker run --shm-size=1g -it --privileged --gpus all --rm -p 8888:8888 -p 8008:8008 -v ./:/project -v $(DATASET_ROOT):/project/data --name welfare-obs-instance welfare-obs /script/run_ipynb.sh /project pipeline.ipynb
 
 #### RASPBERRY PI ####
 
-rpi-build: ## Build Docker Environment
+rpi-build: ## Build Docker Environment (RPi)
 	docker build -t welfare-obs -f RpiDockerfile .
 
-rpi-run-pipeline: ## Start Jupyter
+rpi-run-pipeline: ## Run the pipeline (RPi headless)
 	echo $(DATASET_ROOT)
 	docker run --shm-size=1g -it --privileged --gpus all --rm -p 8888:8888 -p 8008:8008 -v ./:/project -v $(DATASET_ROOT):/project/data --name welfare-obs-instance welfare-obs /script/run_ipynb.sh /project pipeline.ipynb
 
 #### LINUX X64 CUDA ####
 
-cuda-jupyter: cuda-build ## Start Jupyter
+cuda-jupyter: cuda-build ## Start Jupyter (for CUDA)
 	echo $(DATASET_ROOT)
 	docker run --shm-size=1g -it --privileged --gpus all --rm -p 8888:8888 -p 8008:8008 -v ./:/project -v $(DATASET_ROOT):/project/data --name welfare-obs-instance welfare-obs /script/jupyter.sh /project
 
 cuda-force-rebuild: ## Forced ReBuild Docker Environment
 	docker build --no-cache -t welfare-obs -f Dockerfile .
 
-cuda-build: ## Build Docker Environment
+cuda-build: ## Build for CUDA
 	docker build -t welfare-obs -f Dockerfile .
 
-cuda-run-pipeline: ## Start Jupyter
+cuda-run-pipeline: ## Run the CUDA pipeline (headless)
 	echo $(DATASET_ROOT)
 	docker run --shm-size=1g -it --privileged --gpus all --rm -p 8888:8888 -p 8008:8008 -v ./:/project -v $(DATASET_ROOT):/project/data --name welfare-obs-instance welfare-obs /script/run_ipynb.sh /project pipeline.ipynb
 
 #### COMMON CONNECTION TOOLS ####
 
-connect: ## Connect to CUDA Container
+connect: ## Connect to Container
 	docker exec -it welfare-obs-instance bash
 
-train-model: ## Train the models based on config
+train-model: ## Train the models based on config (Only works on X86 CUDA)
 	docker exec -it welfare-obs-instance /project/bin/py.sh /project/train_model.py
 
 check-cuda: ## Check CUDA is working
@@ -112,4 +113,29 @@ setup-gcp-tool: ## Setup calibrate cameras application
 
 run-camera-gcp-tool: ## Run the calibrate cameras application (local machine venv)
 	$(MAKE) -C camera-gcp-tool run
+
+render-code: ## Print the codebase to PDF
+	@source venv/bin/activate;python ./bin/render_source.py -s ".py" -i welfareobs -o ./code-output/welfareobs
+	@source venv/bin/activate;python ./bin/render_source.py -s ".json" -i config -o ./code-output/config
+	@source venv/bin/activate;python ./bin/render_source.py -s ".py" -i calibrate-camera-tool -o ./code-output/calibrate-camera-tool
+	@source venv/bin/activate;python ./bin/render_source.py -s ".py" -i camera-gcp-tool -o ./code-output/camera-gcp-tool
+
+	# Pip
+	@source venv/bin/activate;python ./bin/render_source.py -s ".txt" -i ./bin -o ./code-output/pip
+
+	# Root level utilities
+	@source venv/bin/activate;python ./bin/render_source.py -s ".py" -i ./train_model.py -o ./code-output --single
+	@source venv/bin/activate;python ./bin/render_source.py -s ".json" -i ./config.json -o ./code-output --single
+	@source venv/bin/activate;python ./bin/render_source.py -s ".py" -i ./check_cuda.py -o ./code-output --single
+
+	# Docker Files
+	@source venv/bin/activate;python ./bin/render_source.py -s "Dockerfile" -i ./Dockerfile -o ./code-output/docker --single
+	@source venv/bin/activate;python ./bin/render_source.py -s "Dockerfile" -i ./RpiDockerfile -o ./code-output/docker --single
+	@source venv/bin/activate;python ./bin/render_source.py -s "Dockerfile" -i ./JetsonDockerfile -o ./code-output/docker --single
+	@source venv/bin/activate;python ./bin/render_source.py -s "Dockerfile" -i ./MacDockerfile -o ./code-output/docker --single
+
+	# Makefiles
+	@source venv/bin/activate;python ./bin/render_source.py -s "Makefile" -i ./Makefile -o ./code-output --single
+	@source venv/bin/activate;python ./bin/render_source.py -s "Makefile" -i ./calibrate-camera-tool/Makefile -o ./code-output/calibrate-camera-tool --single
+	@source venv/bin/activate;python ./bin/render_source.py -s "Makefile" -i ./camera-gcp-tool/Makefile -o ./code-output/camera-gcp-tool --single
 

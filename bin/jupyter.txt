@@ -10,4 +10,5 @@ ipython
 ipykernel
 ipywidgets
 
+fpdf
 
