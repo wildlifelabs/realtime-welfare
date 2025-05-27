@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Module Name: 
-Description: 
+Module Name: detectron_calls.py
+Description: Perform core detectron-related functions for the pipeline
 
 Copyright (C) 2025 J.Cincotta
 
@@ -28,7 +28,7 @@ import numpy as np
 from welfareobs.utils.bgr_transform import BGRTransform 
 
 
-def image_tensor(image, size):
+def image_tensor(image: any, size: int, device: str):
     """tx image, returns cuda tensor"""
     transform = torchvision.transforms.Compose([
         torchvision.transforms.PILToTensor(), # Convert a PIL Image or ndarray to tensor and scale the values 0->255 to 0.0->1.0
@@ -42,34 +42,15 @@ def image_tensor(image, size):
         BGRTransform()  # since our data source is RGB
     ])
     image = transform(image)
-    return image.cuda()
+    return image.to(device)
 
 
-def image_loader(image_name, size):
+def image_loader(image_name: str, size: int, device: str):
     """load image, returns cuda tensor"""
-    return image_tensor(Image.open(image_name), size)
+    return image_tensor(Image.open(image_name), size, device)
 
 
-def predict(img_list, model):
+def predict(img_list: list, model: torch.nn.Module):
     with torch.no_grad():
         outputs = model([{"image": img, "height": 384, "width": 384} for img in img_list])
     return outputs  # usually returns list of results, one per image
-
-
-
-
-
-        # with torch.no_grad():  # https://github.com/sphinx-doc/sphinx/issues/4258
-        #     # Apply pre-processing to image.
-        #     if self.input_format == "RGB":
-        #         # whether the model expects BGR inputs or RGB
-        #         original_image = original_image[:, :, ::-1]
-        #     height, width = original_image.shape[:2]
-        #     image = self.aug.get_transform(original_image).apply_image(original_image)
-        #     image = torch.as_tensor(image.astype("float32").transpose(2, 0, 1))
-        #     image.to(self.cfg.MODEL.DEVICE)
-
-        #     inputs = {"image": image, "height": height, "width": width}
-
-        #     predictions = self.model([inputs])[0]
-        #     return predictions

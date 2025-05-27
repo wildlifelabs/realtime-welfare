@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-Module Name: 
-Description: 
+Module Name: re_id_head.py
+Description: ReID Detectron2 head implements deep features from https://github.com/wildlifelabs/wildlife-tools
+             from the paper by Cermak et al., "WildlifeDatasets: An Open-Source Toolkit for Animal Re-Identification"
+
 
 Copyright (C) 2025 J.Cincotta
 

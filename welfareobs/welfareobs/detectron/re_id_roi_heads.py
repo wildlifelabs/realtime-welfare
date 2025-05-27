@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Module Name: 
-Description: 
+Module Name: re_id_roi_heads.py
+Description: RoI Head for Detectron2 that masks individuals and calls down to deep features for ReID
+
 
 Copyright (C) 2025 J.Cincotta
 
@@ -41,7 +42,8 @@ class ReIdROIHeads(StandardROIHeads):
             self,
             *,
             reid_head: nn.Module | None = None,
-            classes_to_reid: list = [],
+            classes_to_reid: list| None = None,
+            device: str = "cuda",
             **kwargs,
     ):
         """
@@ -65,6 +67,11 @@ class ReIdROIHeads(StandardROIHeads):
                 predicted boxes from the box head to train other heads.
         """
         super().__init__(**kwargs)
+        if reid_head is None:
+            raise AssertionError("reid_head can not be None")
+        if classes_to_reid is None:
+            raise AssertionError("classes_to_reid can not be None")
+        self.device = device
         self.reid_head: ReIdHead = reid_head
         self.classes_to_reid: list = classes_to_reid
         self.reid_tx = T.Compose([
@@ -117,7 +124,7 @@ class ReIdROIHeads(StandardROIHeads):
                 for index, offset in enumerate(reid_proposals.keys()):
                     reid_embeddings[offset] = torch.tensor(int(tmp_embeddings[index]))
                 # We add a new field to Detectron instances object - this needs to be a Tensor loaded into the GPU!
-                instances[ptr].set("reid_embeddings", torch.stack(reid_embeddings).to("cuda"))
+                instances[ptr].set("reid_embeddings", torch.stack(reid_embeddings).to(self.device))
             # else:
             #     instances[ptr].set("reid_embeddings", [])
         # output

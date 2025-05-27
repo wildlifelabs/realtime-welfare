@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Module Name: 
-Description: 
+Module Name: detectron_configuration.py
+Description: lazy-called (modern) main configuration for our model
 
 Copyright (C) 2025 J.Cincotta
 
@@ -20,13 +20,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 """
 import os
-import torch
-import torchvision.transforms as T
-from detectron2.checkpoint import Checkpointer, DetectionCheckpointer
 from detectron2.config import LazyCall as L
-from detectron2.config import instantiate
-from detectron2.data import DatasetMapper
-from detectron2.engine import SimpleTrainer
 from detectron2.layers import ShapeSpec
 from detectron2.modeling.anchor_generator import DefaultAnchorGenerator
 from detectron2.modeling.backbone import BasicStem, FPN, ResNet
@@ -37,23 +31,13 @@ from detectron2.modeling.meta_arch import GeneralizedRCNN
 from detectron2.modeling.poolers import ROIPooler
 from detectron2.modeling.proposal_generator import RPN, StandardRPNHead
 from detectron2.modeling.roi_heads import (
-    StandardROIHeads,
     FastRCNNOutputLayers,
     MaskRCNNConvUpsampleHead,
     FastRCNNConvFCHead,
 )
-from detectron2.solver import (
-    LRMultiplier,
-    LRScheduler,
-    WarmupCosineLR,
-    WarmupMultiStepLR,
-    WarmupParamScheduler,
-)
-from detectron2.solver.build import get_default_optimizer_params
-from fvcore.common.param_scheduler import MultiStepParamScheduler
+
 from welfareobs.detectron.re_id_head import ReIdHead
 from welfareobs.detectron.re_id_roi_heads import ReIdROIHeads
-from welfareobs.detectron.welfareobs_dataset import WelfareObsDataset
 from wildlife_tools.data import FeatureDataset
 
 
@@ -66,14 +50,15 @@ constants = dict(
     # std has been absorbed into its conv1 weights, so the std needs to be set 1.
     # Otherwise, you can use [57.375, 57.120, 58.395] (ImageNet std)
     imagenet_bgr256_std=[1.0, 1.0, 1.0],
-    # imagenet_bgr256_std=[57.375, 57.120, 58.395]
+    # imagenet_bgr256_std=[57.375, 57.120, 58.395] <-- these have been baked into imagenet
 )
 
 
 def get_configuration(
         root: str,
         backbone: str = "hf-hub:BVRA/wildlife-mega-L-384",
-        dimensions: int = 384
+        dimensions: int = 384,
+        device: str = "cuda"
 ):
     return L(GeneralizedRCNN)(
         backbone=L(FPN)(
@@ -152,11 +137,12 @@ def get_configuration(
                 checkpoint_filename=os.path.join(root, "checkpoint.pth"),
                 batch_size=1,
                 num_workers=1,
-                device="cuda",
+                device=device,
                 features_database=L(FeatureDataset.from_file)(
                     path=os.path.join(root, "similarity.pkl")
                 )
             ),
+            device=device,
             classes_to_reid=[23]
         ),
         pixel_mean=constants["imagenet_bgr256_mean"],

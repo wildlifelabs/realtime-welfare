@@ -115,27 +115,29 @@ run-camera-gcp-tool: ## Run the calibrate cameras application (local machine ven
 	$(MAKE) -C camera-gcp-tool run
 
 render-code: ## Print the codebase to PDF
-	@source venv/bin/activate;python ./bin/render_source.py -s ".py" -i welfareobs -o ./code-output/welfareobs
-	@source venv/bin/activate;python ./bin/render_source.py -s ".json" -i config -o ./code-output/config
-	@source venv/bin/activate;python ./bin/render_source.py -s ".py" -i calibrate-camera-tool -o ./code-output/calibrate-camera-tool
-	@source venv/bin/activate;python ./bin/render_source.py -s ".py" -i camera-gcp-tool -o ./code-output/camera-gcp-tool
-
+	# Requires `enscript` and `ghostscript` to be installed
+	@source venv/bin/activate;python ./bin/render_source.py -s ".py" -i welfareobs -o ./code-output/welfareobs -t "html" --flatten
+	@source venv/bin/activate;python ./bin/render_source.py -s ".json" -i config -o ./code-output/config -t "html" --flatten
+	@source venv/bin/activate;python ./bin/render_source.py -s ".py" -i calibrate-camera-tool -o ./code-output/calibrate-camera-tool -t "html" --flatten
+	@source venv/bin/activate;python ./bin/render_source.py -s ".py" -i camera-gcp-tool -o ./code-output/camera-gcp-tool -t "html" --flatten
 	# Pip
-	@source venv/bin/activate;python ./bin/render_source.py -s ".txt" -i ./bin -o ./code-output/pip
-
+	@source venv/bin/activate;python ./bin/render_source.py -s ".txt" -i ./bin -o ./code-output/pip -t "html" --flatten
 	# Root level utilities
-	@source venv/bin/activate;python ./bin/render_source.py -s ".py" -i ./train_model.py -o ./code-output --single
-	@source venv/bin/activate;python ./bin/render_source.py -s ".json" -i ./config.json -o ./code-output --single
-	@source venv/bin/activate;python ./bin/render_source.py -s ".py" -i ./check_cuda.py -o ./code-output --single
-
+	@source venv/bin/activate;python ./bin/render_source.py -s ".py" -i ./train_model.py -o ./code-output/training --single -t "html" --flatten
+	@source venv/bin/activate;python ./bin/render_source.py -s ".json" -i ./config.json -o ./code-output/training --single -t "html" --flatten
+	@source venv/bin/activate;python ./bin/render_source.py -s ".py" -i ./check_cuda.py -o ./code-output/bin --single -t "html" --flatten
+	@source venv/bin/activate;python ./bin/render_source.py -s ".py" -i ./bin/render_source.py -o ./code-output/bin --single -t "html" --flatten
+	@source venv/bin/activate;python ./bin/render_source.py -s ".sh" -i ./bin -o ./code-output/bin -t "html" --flatten
 	# Docker Files
-	@source venv/bin/activate;python ./bin/render_source.py -s "Dockerfile" -i ./Dockerfile -o ./code-output/docker --single
-	@source venv/bin/activate;python ./bin/render_source.py -s "Dockerfile" -i ./RpiDockerfile -o ./code-output/docker --single
-	@source venv/bin/activate;python ./bin/render_source.py -s "Dockerfile" -i ./JetsonDockerfile -o ./code-output/docker --single
-	@source venv/bin/activate;python ./bin/render_source.py -s "Dockerfile" -i ./MacDockerfile -o ./code-output/docker --single
-
+	@source venv/bin/activate;python ./bin/render_source.py -s "Dockerfile" -i ./Dockerfile -o ./code-output/docker --single -t "html" --flatten
+	@source venv/bin/activate;python ./bin/render_source.py -s "Dockerfile" -i ./RpiDockerfile -o ./code-output/docker --single -t "html" --flatten
+	@source venv/bin/activate;python ./bin/render_source.py -s "Dockerfile" -i ./JetsonDockerfile -o ./code-output/docker --single -t "html" --flatten
+	@source venv/bin/activate;python ./bin/render_source.py -s "Dockerfile" -i ./MacDockerfile -o ./code-output/docker --single -t "html" --flatten
 	# Makefiles
-	@source venv/bin/activate;python ./bin/render_source.py -s "Makefile" -i ./Makefile -o ./code-output --single
-	@source venv/bin/activate;python ./bin/render_source.py -s "Makefile" -i ./calibrate-camera-tool/Makefile -o ./code-output/calibrate-camera-tool --single
-	@source venv/bin/activate;python ./bin/render_source.py -s "Makefile" -i ./camera-gcp-tool/Makefile -o ./code-output/camera-gcp-tool --single
+	@source venv/bin/activate;python ./bin/render_source.py -s "Makefile" -i ./Makefile -o ./code-output/main-project --single -t "html" --flatten
+	@source venv/bin/activate;python ./bin/render_source.py -s "Makefile" -i ./calibrate-camera-tool/Makefile -o ./code-output/calibrate-camera-tool --single -t "html" --flatten
+	@source venv/bin/activate;python ./bin/render_source.py -s "Makefile" -i ./camera-gcp-tool/Makefile -o ./code-output/camera-gcp-tool --single -t "html" --flatten
 
+render-tree: ## render code heirarchy
+	# Requires `tree` to be installed.
+	@tree --gitignore -C -H "" --nolinks -o code-output/tree.html
