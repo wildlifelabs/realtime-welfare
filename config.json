@@ -1,5 +1,5 @@
 {
-    "configs": "wod-md-cpu",
+    "configs": "wod-md, wod-swin, wod-md-adam",
     "wod-md": {
         "comment": "Fine-tuning Mega Descriptor",
         "name": "wod-md",
@@ -49,22 +49,5 @@
         "optimizer": "Adam",
         "learning-rate": "0.001",
         "device": "cuda"
-    },
-    "wod-md-cpu": {
-        "comment": "Fine-tuning Mega Descriptor",
-        "name": "wod-md-cpu",
-        "root": "/project/data/wod_reid",
-        "annotations-filename": "coco_train.json",
-        "backbone": "hf-hub:BVRA/wildlife-mega-L-384",
-        "trainer-batch-size": "32",
-        "trainer-workers": "2",
-        "trainer-epochs": "200",
-        "features-batch-size": "64",
-        "features-workers": "2",
-        "dimensions": "384",
-        "optimizer": "SGD",
-        "learning-rate": "0.001",
-        "learning-rate-momentum": "0.9",
-        "device": "cpu"
     }
 }
