@@ -19,7 +19,16 @@ RUN apt-get install -yqq --fix-missing git wget bzip2 openssl build-essential li
 RUN apt-get install -yqq --fix-missing libhdf5-serial-dev libopenblas-dev libnuma1 libnuma-dev libpng-dev zlib1g-dev gfortran 
 # Jupyter Misc
 RUN apt-get install -yqq --fix-missing nodejs 
-RUN apt-get install -yqq --fix-missing pandoc texlive-full
+# RUN apt-get install -yqq --fix-missing ghostscript
+WORKDIR /tmp
+RUN wget https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs10051/ghostscript-10.05.1.tar.gz
+RUN tar -xvf ghostscript-10.05.1.tar.gz
+WORKDIR /tmp/ghostscript-10.05.1
+RUN ./configure
+RUN make
+RUN make libgs
+RUN make install 
+RUN apt-get install -yqq --fix-missing pandoc 
 # update-alternatives support
 RUN apt-get install -yqq --fix-missing debianutils
 # cleanup
