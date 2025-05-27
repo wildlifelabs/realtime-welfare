@@ -92,6 +92,7 @@ for ptr in sets:
     learning_rate = config.as_float(f"{ptr}.learning-rate")
     use_opt = config[f"{ptr}.optimizer"]
     name = config[f"{ptr}.name"]
+    device = config[f"{ptr}.device"]
     outpath = f"/project/data/results/{name}"
     print(f"Processing {ptr} to {outpath}.")
     os.makedirs(outpath, exist_ok=True)
@@ -155,13 +156,13 @@ for ptr in sets:
         accumulation_steps=8,
         num_workers=config.as_int(f"{ptr}.trainer-workers"),
         epochs=config.as_int(f"{ptr}.trainer-epochs"),
-        device='cuda',
+        device=device,
     )
     print(f"Training {config.as_int(f"{ptr}.trainer-epochs")} epochs...")
     trainer.train()
     trainer.save(outpath)
     extractor = DeepFeatures(backbone,
-                             device='cuda',
+                             device=device,
                              batch_size=config.as_int(f"{ptr}.features-batch-size"),
                              num_workers=config.as_int(f"{ptr}.features-workers")
                              )
