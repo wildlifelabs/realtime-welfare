@@ -1,5 +1,4 @@
 FROM ubuntu:24.04
-ARG TARGETPLATFORM
 ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Sydney/Australia
@@ -15,12 +14,19 @@ RUN apt-get install -yqq --fix-missing nodejs
 RUN apt-get autoremove -y
 # RUN timedatectl set-timezone Sydney/Australia
 
+# update-alternatives support
+RUN apt-get install -yqq --fix-missing debianutils
+
+# Default Python
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.13 1
+RUN update-alternatives --set python /usr/bin/python3.13
+
 RUN mkdir /script
 RUN mkdir /project
 RUN mkdir /project/data
 
 WORKDIR /script
-COPY ./bin/rpi-requirements.txt /script
+COPY ./bin/mac-requirements.txt /script
 COPY ./bin/requirements2.txt /script
 COPY ./bin/get-pip.py /script
 # RUN wget https://bootstrap.pypa.io/get-pip.py
