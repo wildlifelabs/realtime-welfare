@@ -14,6 +14,13 @@ RUN apt-get install -yqq --fix-missing nodejs
 RUN apt-get autoremove -y
 # RUN timedatectl set-timezone Sydney/Australia
 
+# update-alternatives support
+RUN apt-get install -yqq --fix-missing debianutils
+
+# Default Python
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.13 1
+RUN update-alternatives --set python /usr/bin/python3.13
+
 RUN mkdir /script
 RUN mkdir /project
 RUN mkdir /project/data

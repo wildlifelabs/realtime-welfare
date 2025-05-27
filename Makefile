@@ -62,7 +62,7 @@ mac-build: ## Build Docker Environment (Mac)
 
 mac-run-pipeline: ## Run the CUDA pipeline (Mac headless)
 	echo $(DATASET_ROOT)
-	docker run --shm-size=1g -it --privileged --gpus all --rm -p 8888:8888 -p 8008:8008 -v ./:/project -v $(DATASET_ROOT):/project/data --name welfare-obs-instance welfare-obs /script/run_ipynb.sh /project pipeline.ipynb
+	docker run --shm-size=1g -it --privileged --rm -p 8888:8888 -p 8008:8008 -v ./:/project -v $(DATASET_ROOT):/project/data --name welfare-obs-instance welfare-obs python /project/run_pipeline.py -c mac-non-rtsp-test.json
 
 #### RASPBERRY PI ####
 

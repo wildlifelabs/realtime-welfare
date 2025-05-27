@@ -22,14 +22,36 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 from welfareobs.utils.performance_monitor import PerformanceMonitor
 from welfareobs.runner import Runner
 from welfareobs.utils.config import Config
-import matplotlib.pyplot as plt
+import argparse
 
 
-cfg: Config = Config(
-    "/project/config/non-rtsp-example.json",
-    "/project/welfareobs/welfareobs"
-)
 
-runner: Runner = Runner(cfg)
-runner.run(107894) # this matches the performance-history-size configuration
-runner.performance.save("/project/performance.csv")
+def main():
+    # we map the file suffix search to an enscript language file syntax highlight support
+    # See `enscript --help-highlight` for more information
+    mapping = {
+        ".py": "python",
+        ".json": "bash",
+        "Dockerfile": "makefile",
+        ".txt": "bash",
+        ".sh": "bash",
+        "Makefile": "makefile"
+    }
+    parser = argparse.ArgumentParser(description='Process pipeline')
+    parser.add_argument('-c', '--config',
+                        help='JSON Configuration to use for running the pipeline (filename only)',
+                        required=True)
+    args = parser.parse_args()                    
+    cfg: Config = Config(
+	    f"/project/config/{args.config}",
+	    "/project/welfareobs/welfareobs"
+    )
+
+    runner: Runner = Runner(cfg)
+    runner.run(107894) # this matches the performance-history-size configuration
+    runner.performance.save("/project/performance.csv")
+
+
+if __name__ == "__main__":
+    main()
+

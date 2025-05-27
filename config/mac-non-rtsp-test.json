@@ -1,0 +1,56 @@
+{
+  "settings":{
+    "configuration-name": "Mac benchmark without RTSP",
+    "performance-history-size": "100",
+    "threadpool-size": "0",
+    "pytorch-device": "cpu"
+  },
+  "pipeline": ["step-1", "step-2", "step-3", "step-4", "step-7"],
+  "step-1": ["camera-1", "camera-2", "camera-3"],
+  "step-2": ["detection"],
+  "step-3": ["location-1", "location-2", "location-3"],
+  "step-4": ["aggregator"],
+  "step-7": ["local-save"],
+  "camera-1": {
+    "handler": "welfareobs.handlers.camera.FauxCameraHandler",
+    "config": "/project/config/fake-camera-1.json"
+  },
+  "camera-2": {
+    "handler": "welfareobs.handlers.camera.FauxCameraHandler",
+    "config": "/project/config/fake-camera-2.json"
+  },
+  "camera-3": {
+    "handler": "welfareobs.handlers.camera.FauxCameraHandler",
+    "config": "/project/config/fake-camera-3.json"
+  },
+  "detection": {
+    "handler": "welfareobs.handlers.detection.DetectionHandler",
+    "input": ["camera-1", "camera-2", "camera-3"],
+    "config": "/project/config/detection.json"
+  },
+  "location-1": {
+    "handler": "welfareobs.handlers.location.LocationHandler",
+    "input": "detection",
+    "config": "/project/config/location-1.json"
+  },
+  "location-2": {
+    "handler": "welfareobs.handlers.location.LocationHandler",
+    "input": "detection",
+    "config": "/project/config/location-2.json"
+  },
+  "location-3": {
+    "handler": "welfareobs.handlers.location.LocationHandler",
+    "input": "detection",
+    "config": "/project/config/location-3.json"
+  },
+  "aggregator": {
+    "handler": "welfareobs.handlers.aggregator.AggregatorHandler",
+    "input": ["location-1", "location-2", "location-3"],
+    "config": "/project/config/aggregator.json"
+  },
+  "local-save": {
+    "handler": "welfareobs.handlers.filesystem.SaveIntersectHandler",
+    "input": "aggregator",
+    "config": "/project/mac-final-output.csv"
+  }
+}
