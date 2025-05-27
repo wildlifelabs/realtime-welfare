@@ -4,3 +4,6 @@
 [submodule "wildlife-tools"]
 	path = wildlife-tools
 	url = git@github.com:wildlifelabs/wildlife-tools.git
+[submodule "pytorch-on-jetson"]
+	path = pytorch-on-jetson
+	url = git@github.com:wildlifelabs/pytorch-on-jetson.git
