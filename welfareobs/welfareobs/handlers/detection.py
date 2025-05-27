@@ -76,7 +76,7 @@ class DetectionHandler(AbstractHandler):
         self.__reid_timm_backbone = cnf.as_string("reid-timm-backbone")
         self.__segmentation_checkpoint = cnf.as_string("segmentation-checkpoint")
         self.__debug_enable = cnf.as_bool("debug-enable")
-        self.__pytorch_device = cnf.as_string("pytorch-device")
+        self.__pytorch_device = cnf["pytorch-device"]
         self.__model = instantiate(
             get_configuration(
                 self.__reid_model_root,

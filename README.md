@@ -4,28 +4,51 @@ Docker framework for evaluating the WelfareObs realtime welfare package
 
 ## Makefile Targets
 ```
-help                    This help
-update-submodules       Update all submodules using GIT
-init-submodules         Initial submodule setup
-force-rebuild           Forced ReBuild Docker Environment
-build                   Build Docker Environment
-jupyter                 Start Jupyter
-connect                 Connect to CUDA Container
-train-model             Train the models based on config
-setup-local             Set up local environment (for development)
-setup-calibrate-cameras Setup calibrate cameras application (local machine venv)
-calibrate-cameras       Run the calibrate cameras application (local machine venv)
+help                      This help
+
+setup-local               Set up local environment (for using an IDE during development)
+update-submodules         Update all submodules using GIT
+init-submodules           Initial submodule setup
+
+jetson-build              Build Docker Environment (Jetson)
+jetson-run-pipeline       Run the Jetson CUDA pipeline (Jetson Xavier headless)
+
+mac-build                 Build Docker Environment (Mac)
+mac-run-pipeline          Run the CUDA pipeline (Mac headless)
+
+rpi-build                 Build Docker Environment (RPi)
+rpi-run-pipeline          Run the pipeline (RPi headless)
+
+cuda-jupyter              Start Jupyter (for CUDA)
+cuda-force-rebuild        Forced ReBuild Docker Environment
+cuda-build                Build for CUDA
+cuda-run-pipeline         Run the CUDA pipeline (headless)
+
+connect                   Connect to Container
+train-model               Train the models based on config (Only works on X86 CUDA)
+check-cuda                Check CUDA is working
+
+setup-calibrate-cameras   Setup calibrate cameras application
+run-calibrate-cameras     Run the calibrate cameras application (local machine venv)
+
+setup-gcp-tool            Setup calibrate cameras application
+run-camera-gcp-tool       Run the calibrate cameras application (local machine venv)
+
+render-code               Print the codebase to PDF
+render-tree               render code heirarchy
 
 ```
 
 Just use `make` to list the targets (help)
 
-*Make sure you update `Makefile.cfg` to point to your dataset for running the fine-tuning of the reidentification model (`make train-model`).
+* Make sure you update `Makefile.cfg` to point to your dataset for running the fine-tuning of the reidentification model (`make train-model`).
+* See the `example_Makefile.cfg` for, you guessed it, and example of how to create this configuration file. It just needs to point to the data folder...
 
 
 ---
 
 ## Jupyter Notebooks
+
 
 ### Detectron
 `detectron.ipynb` will evaluate the detectron model. Note that using the notebook requires having trained the model. This must be done using the `train-model` makefile target. 

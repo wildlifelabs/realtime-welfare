@@ -44,10 +44,11 @@ class ReIdHead(nn.Module):
                  ):
         super().__init__()
         # we expose this for pre-run validation only
+        print(f"Using device: {device}")
         self.input_dim = input_dim
         intermediate_model = timm.create_model(model_name, pretrained=True, num_classes=0)
         if checkpoint_filename is not None:
-            intermediate_model.load_state_dict(torch.load(checkpoint_filename, weights_only=False)['model'])
+            intermediate_model.load_state_dict(torch.load(checkpoint_filename, weights_only=False, map_location=torch.device(device))['model'])
         self.extractor = DeepFeatures(
             intermediate_model,
             batch_size=batch_size,
