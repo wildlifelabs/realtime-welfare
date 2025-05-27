@@ -95,7 +95,8 @@ class DetectionHandler(AbstractHandler):
         predictions = predict(
             [image_tensor(
                 o.image,
-                self.__dimensions
+                self.__dimensions,
+                self.__pytorch_device
             ) for o in self.__current_frames],
             self.__model
         )
