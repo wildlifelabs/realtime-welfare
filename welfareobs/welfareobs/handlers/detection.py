@@ -56,7 +56,7 @@ class DetectionHandler(AbstractHandler):
         }    
     
     """
-    def __init__(self, name: str, inputs: [str], param: str):
+    def __init__(self, name: str, inputs: list[str], param: str):
         super().__init__(name, inputs, param)
         self.__model = None
         self.__current_frames = None
@@ -67,6 +67,7 @@ class DetectionHandler(AbstractHandler):
         self.__buffer: list = []
         self.__metadata = MetadataCatalog.get("coco_2017_val")
         self.__debug_enable: bool = False
+        self.__pytorch_device: str = "cuda"
 
     def setup(self):
         cnf: Config = Config(self.param)
@@ -75,17 +76,19 @@ class DetectionHandler(AbstractHandler):
         self.__reid_timm_backbone = cnf.as_string("reid-timm-backbone")
         self.__segmentation_checkpoint = cnf.as_string("segmentation-checkpoint")
         self.__debug_enable = cnf.as_bool("debug-enable")
+        self.__pytorch_device = cnf.as_string("pytorch-device")
         self.__model = instantiate(
             get_configuration(
                 self.__reid_model_root,
                 backbone=self.__reid_timm_backbone,
-                dimensions=self.__dimensions
+                dimensions=self.__dimensions,
+                device=self.__pytorch_device
             )
         )
         # then load it with the pretrained backbone
         DetectionCheckpointer(self.__model).load(self.__segmentation_checkpoint)
         self.__model.eval()
-        self.__model.to("cuda")
+        self.__model.to(self.__pytorch_device)
 
     def run(self):
         output: list[Individual] = []

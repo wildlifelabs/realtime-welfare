@@ -59,11 +59,9 @@ pygments>=2.2
 psutil
 # panopticapi
 
-transformers
+torch --index-url https://download.pytorch.org/whl/cpu
+torchvision --index-url https://download.pytorch.org/whl/cpu
+torchaudio --index-url https://download.pytorch.org/whl/cpu
 
-# pytorch itself...
-torch --index-url https://download.pytorch.org/whl/cu126
-torchvision --index-url https://download.pytorch.org/whl/cu126
-torchaudio --index-url https://download.pytorch.org/whl/cu126
-
+# transformers
 
