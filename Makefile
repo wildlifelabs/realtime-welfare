@@ -49,6 +49,7 @@ init-submodules: ## Initial submodule setup
 #### NVIDIA JETSON ####
 
 jetson-build: ## Build Docker Environment (Jetson)
+	cp -r /usr/local/cuda-12.2 ./cuda-12.2
 	docker build --progress=plain -t welfare-obs -f JetsonDockerfile .
 
 jetson-run-pipeline: ## Run the Jetson CUDA pipeline (Jetson Xavier headless)
