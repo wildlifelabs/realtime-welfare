@@ -92,39 +92,44 @@ class DetectionHandler(AbstractHandler):
 
     def run(self):
         output: list[Individual] = []
-        predictions = predict(
-            [image_tensor(
-                o.image,
-                self.__dimensions
-            ) for o in self.__current_frames],
-            self.__model
-        )
-        for index, prediction in enumerate(predictions):
-            prediction = prediction["instances"]
-            if self.__debug_enable:
-                self.dump_image(self.__current_frames[index].image, prediction)
-            if prediction.has("reid_embeddings"):
-                _reids = list(prediction.get("reid_embeddings").cpu().numpy().flatten())
-                _classes = list(prediction.get("pred_classes").cpu().numpy())
-                _boxes = list(prediction.get("pred_boxes").to("cpu"))
-                _masks = list(prediction.get("pred_masks").cpu().numpy())
-                _scores = list(prediction.get("scores").cpu().numpy())
-                for i in range(len(prediction)):
-                    if _reids[i] != -1:
-                        output.append(
-                            Individual(
-                                camera_name=self.__current_frames[index].camera_name,
-                                confidence=_scores[i],
-                                identity=_reids[i],
-                                species=_classes[i],
-                                x_min=0.0, # TODO fix these
-                                y_min=0.0,
-                                x_max=0.0,
-                                y_max=0.0,
-                                mask=_masks[i],
-                                timestamp=self.__current_frames[index].timestamp
+        try:
+            predictions = predict(
+                [image_tensor(
+                    o.image,
+                    self.__dimensions,
+                    self.__pytorch_device
+                ) for o in self.__current_frames],
+                self.__model
+            )
+
+            for index, prediction in enumerate(predictions):
+                prediction = prediction["instances"]
+                if self.__debug_enable:
+                    self.dump_image(self.__current_frames[index].image, prediction)
+                if prediction.has("reid_embeddings"):
+                    _reids = list(prediction.get("reid_embeddings").cpu().numpy().flatten())
+                    _classes = list(prediction.get("pred_classes").cpu().numpy())
+                    _boxes = list(prediction.get("pred_boxes").to("cpu"))
+                    _masks = list(prediction.get("pred_masks").cpu().numpy())
+                    _scores = list(prediction.get("scores").cpu().numpy())
+                    for i in range(len(prediction)):
+                        if _reids[i] != -1:
+                            output.append(
+                                Individual(
+                                    camera_name=self.__current_frames[index].camera_name,
+                                    confidence=_scores[i],
+                                    identity=_reids[i],
+                                    species=_classes[i],
+                                    x_min=0.0, # TODO fix these
+                                    y_min=0.0,
+                                    x_max=0.0,
+                                    y_max=0.0,
+                                    mask=_masks[i],
+                                    timestamp=self.__current_frames[index].timestamp
+                                )
                             )
-                        )
+        except Exception as ex:
+        	print(ex)
         # print(f"detection::run output size = {len(output)}")
         self.__buffer = output
 
