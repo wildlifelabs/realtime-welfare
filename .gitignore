@@ -7,6 +7,7 @@ code-output
 Makefile.cfg
 *final-output.csv
 final-output.csv
+cuda-12.2
 
 
 # Mac!
