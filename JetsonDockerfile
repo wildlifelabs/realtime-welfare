@@ -1,41 +1,81 @@
-# This specific version matches Jetson Xavier latest spec
-# https://hub.docker.com/r/nvidia/cuda/tags?name=11.4.3-devel
-# FROM nvidia/cuda:11.4.3-devel-ubuntu20.04
+FROM nvcr.io/nvidia/l4t-jetpack:r35.4.1
+#
+# Setup environment variables
+#
+ENV PATH="/usr/local/cuda-12.2/bin:$PATH"
+ENV LD_LIBRARY_PATH="/usr/local/cuda-12.2/compat:/usr/local/cuda-12.2/lib64"
+ENV CUDACXX="/usr/local/cuda-12.2/bin/nvcc"
+ENV CUDA_HOME="/usr/local/cuda-12.2"
 
-# This version is closest to Jetson that supported PyTorch 2
-# https://hub.docker.com/r/nvidia/cuda/tags?name=11.8.0-cudnn8-devel-ubuntu20.04
-FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu20.04
-ARG TARGETPLATFORM
+# This specific version matches Jetson Xavier latest spec
+# https://catalog.ngc.nvidia.com/orgs/nvidia/containers/l4t-jetpack
+# FROM nvcr.io/nvidia/l4t-jetpack:r35.6.1
 ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
-ENV PATH=/usr/local/cuda/bin:${PATH}
 ENV CPATH=/usr/local/cuda/include
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Sydney/Australia
+
 # Etc/UTC
 RUN apt-get update > /dev/null
+RUN apt-get install -yqq --fix-missing --reinstall ca-certificates
 RUN apt-get install -yqq --fix-missing software-properties-common
 RUN apt-get -yqq upgrade
 RUN add-apt-repository ppa:deadsnakes/ppa
 RUN apt-get update > /dev/null
-RUN apt-get install -yqq --fix-missing python3.11 libpython3.11-dev python3.11-dev
-RUN apt-get install -yqq --fix-missing git wget bzip2 openssl build-essential libpq-dev xorg libxi6 libxfixes3 libxcursor1 libxdamage1 libxext6 libxfont2
+RUN apt-get install -yqq --fix-missing python3.13 libpython3.13-dev python3.13-dev # python3.8-distutils
+RUN apt-get install -yqq --fix-missing git wget curl bzip2 openssl build-essential libpq-dev xorg libxi6 libxfixes3 libxcursor1 libxdamage1 libxext6 libxfont2
+RUN apt-get install -yqq --fix-missing libhdf5-serial-dev
+RUN apt-get install -yqq --fix-missing libopenblas-dev 
+RUN apt-get install -yqq --fix-missing libnuma-dev libnuma1
+RUN apt-get install -yqq --fix-missing libpng-dev zlib1g-dev
+RUN apt-get install -yqq --fix-missing gfortran
 RUN apt-get autoremove -y
-# RUN timedatectl set-timezone Sydney/Australia
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.13 1
+RUN update-alternatives --set python /usr/bin/python3.13
+RUN mkdir /work
+WORKDIR /work
+RUN wget -q -O- https://packagecloud.io/dcommander/libjpeg-turbo/gpgkey | gpg --dearmor >/etc/apt/trusted.gpg.d/libjpeg-turbo.gpg
+RUN wget -q -O- https://raw.githubusercontent.com/libjpeg-turbo/repo/main/libjpeg-turbo.list >/etc/apt/sources.list.d/libjpeg-turbo.list
+RUN apt-get update
+RUN apt-get install -yqq --fix-missing libjpeg-turbo-official
+# Required for Detectron2 build when support for Distributed is available in PyTorch
+RUN apt-get install -yqq --fix-missing libopenmpi3
+
+RUN ldconfig
 
 RUN mkdir /script
 RUN mkdir /project
 RUN mkdir /project/data
+RUN mkdir -p /usr/local/cuda-12.2
 
 WORKDIR /script
-COPY ./bin/jetson-requirements.txt /script
-COPY ./bin/requirements2.txt /script
+COPY ./pytorch-on-jetson/deviceQuery/deviceQuery /script
 
+# the order of these allows the least impact when updating dependencies.
 COPY ./bin/get-pip.py /script
 # RUN wget https://bootstrap.pypa.io/get-pip.py
-RUN python3.11 /script/get-pip.py
-RUN pip3 install --upgrade pip
-RUN pip3 install -r /script/jetson-requirements.txt
-RUN pip3 install -r /script/requirements2.txt
+RUN python /script/get-pip.py
+RUN python -m pip install --upgrade pip
+
+COPY ./pytorch-on-jetson/pytorch/dist/torch-2.7.0a0+git1341794-cp313-cp313-linux_aarch64.whl /work
+COPY ./pytorch-on-jetson/vision/dist/torchvision-0.22.0+9eb57cd-cp313-cp313-linux_aarch64.whl /work
+COPY ./check_cuda.py /work
+RUN python -m pip install numpy==2.2.5
+RUN python -m pip install --upgrade six
+RUN python -m pip install /work/torch-2.7.0a0+git1341794-cp313-cp313-linux_aarch64.whl
+RUN python -m pip install /work/torchvision-0.22.0+9eb57cd-cp313-cp313-linux_aarch64.whl
+
+COPY ./bin/jetson-requirements.txt /script
+RUN python -m pip install -r /script/jetson-requirements.txt
+
+COPY ./cuda-12.2 /usr/local/cuda-12.2
+
+COPY ./bin/requirements2.txt /script
+RUN python -m pip install -r /script/requirements2.txt
+
+RUN python -m pip install --upgrade urllib3 pyOpenSSL cryptography idna certifi
+
+ENV LD_PRELOAD=/usr/lib/aarch64-linux-gnu/libgomp.so.1:/usr/local/lib/python3.13/dist-packages/sklearn/utils/../../scikit_learn.libs/libgomp-d22c30c5.so.1.0.0
 
 ENV PYTHONPATH=/project/wildlife-datasets:${PYTHONPATH}
 ENV PYTHONPATH=/project/wildlife-tools:${PYTHONPATH}
@@ -46,3 +86,5 @@ COPY ./bin/jupyter.sh /script
 COPY ./bin/run_ipynb.sh /script
 COPY ./bin/tensorboard.sh /script
 ENV PATH=/script:${PATH}
+
+

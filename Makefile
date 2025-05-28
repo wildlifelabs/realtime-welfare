@@ -49,7 +49,7 @@ init-submodules: ## Initial submodule setup
 #### NVIDIA JETSON ####
 
 jetson-build: ## Build Docker Environment (Jetson)
-	docker build -t welfare-obs -f JetsonDockerfile .
+	docker build --progress=plain -t welfare-obs -f JetsonDockerfile .
 
 jetson-run-pipeline: ## Run the Jetson CUDA pipeline (Jetson Xavier headless)
 	echo $(DATASET_ROOT)
