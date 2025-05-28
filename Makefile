@@ -53,7 +53,8 @@ jetson-build: ## Build Docker Environment (Jetson)
 
 jetson-run-pipeline: ## Run the Jetson CUDA pipeline (Jetson Xavier headless)
 	echo $(DATASET_ROOT)
-	docker run --shm-size=1g -it --runtime nvidia --privileged --rm -p 8888:8888 -p 8008:8008 -v ./:/project -v $(DATASET_ROOT):/project/data --name welfare-obs-instance welfare-obs /script/run_ipynb.sh /project pipeline.ipynb
+	mkdir -p $(DATASET_ROOT)/hugging-face-cache
+	docker run --shm-size=1g -it --runtime nvidia --privileged --rm -p 8888:8888 -p 8008:8008 -v ./:/project -v $(DATASET_ROOT):/project/data -v $(DATASET_ROOT)/hugging-face-cache:/root/.cache --name welfare-obs-instance welfare-obs python /project/run_pipeline.py -c jetson-non-rtsp-test.json
 
 #### MACINTOSH OSX ####
 
@@ -62,7 +63,8 @@ mac-build: ## Build Docker Environment (Mac)
 
 mac-run-pipeline: ## Run the CUDA pipeline (Mac headless)
 	echo $(DATASET_ROOT)
-	docker run --shm-size=1g -it --privileged --rm -p 8888:8888 -p 8008:8008 -v ./:/project -v $(DATASET_ROOT):/project/data --name welfare-obs-instance welfare-obs python /project/run_pipeline.py -c mac-non-rtsp-test.json
+	mkdir -p $(DATASET_ROOT)/hugging-face-cache
+	docker run --shm-size=1g -it --privileged --rm -p 8888:8888 -p 8008:8008 -v ./:/project -v $(DATASET_ROOT):/project/data -v $(DATASET_ROOT)/hugging-face-cache:/root/.cache --name welfare-obs-instance welfare-obs python /project/run_pipeline.py -c mac-non-rtsp-test.json
 
 #### RASPBERRY PI ####
 
@@ -71,13 +73,15 @@ rpi-build: ## Build Docker Environment (RPi)
 
 rpi-run-pipeline: ## Run the pipeline (RPi headless)
 	echo $(DATASET_ROOT)
-	docker run --shm-size=1g -it --privileged --gpus all --rm -p 8888:8888 -p 8008:8008 -v ./:/project -v $(DATASET_ROOT):/project/data --name welfare-obs-instance welfare-obs /script/run_ipynb.sh /project pipeline.ipynb
+	mkdir -p $(DATASET_ROOT)/hugging-face-cache
+	docker run --shm-size=1g -it --privileged --gpus all --rm -p 8888:8888 -p 8008:8008 -v ./:/project -v $(DATASET_ROOT):/project/data -v $(DATASET_ROOT)/hugging-face-cache:/root/.cache --name welfare-obs-instance welfare-obs python /project/run_pipeline.py -c rpi-non-rtsp-test.json
 
 #### LINUX X64 CUDA ####
 
 cuda-jupyter: cuda-build ## Start Jupyter (for CUDA)
 	echo $(DATASET_ROOT)
-	docker run --shm-size=1g -it --privileged --gpus all --rm -p 8888:8888 -p 8008:8008 -v ./:/project -v $(DATASET_ROOT):/project/data --name welfare-obs-instance welfare-obs /script/jupyter.sh /project
+	mkdir -p $(DATASET_ROOT)/hugging-face-cache
+	docker run --shm-size=1g -it --privileged --gpus all --rm -p 8888:8888 -p 8008:8008 -v ./:/project -v $(DATASET_ROOT):/project/data -v $(DATASET_ROOT)/hugging-face-cache:/root/.cache --name welfare-obs-instance welfare-obs /script/jupyter.sh /project
 
 cuda-force-rebuild: ## Forced ReBuild Docker Environment
 	docker build --no-cache -t welfare-obs -f Dockerfile .
@@ -87,7 +91,9 @@ cuda-build: ## Build for CUDA
 
 cuda-run-pipeline: ## Run the CUDA pipeline (headless)
 	echo $(DATASET_ROOT)
-	docker run --shm-size=1g -it --privileged --gpus all --rm -p 8888:8888 -p 8008:8008 -v ./:/project -v $(DATASET_ROOT):/project/data --name welfare-obs-instance welfare-obs /script/run_ipynb.sh /project pipeline.ipynb
+	mkdir -p $(DATASET_ROOT)/hugging-face-cache
+	docker run --shm-size=1g -it --privileged --gpus all --rm -p 8888:8888 -p 8008:8008 -v ./:/project -v $(DATASET_ROOT):/project/data -v $(DATASET_ROOT)/hugging-face-cache:/root/.cache --name welfare-obs-instance welfare-obs python /project/run_pipeline.py -c non-rtsp-example.json
+	# old method using Jupyter headless: /script/run_ipynb.sh /project pipeline.ipynb
 
 #### COMMON CONNECTION TOOLS ####
 
