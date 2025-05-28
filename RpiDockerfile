@@ -26,7 +26,7 @@ RUN mkdir /project
 RUN mkdir /project/data
 
 WORKDIR /script
-COPY ./bin/mac-requirements.txt /script
+COPY ./bin/rpi-requirements.txt /script
 COPY ./bin/requirements2.txt /script
 COPY ./bin/get-pip.py /script
 # RUN wget https://bootstrap.pypa.io/get-pip.py
