@@ -5,6 +5,9 @@ pm-log.txt
 # paper mill
 code-output
 Makefile.cfg
+*final-output.csv
+final-output.csv
+
 
 # Mac!
 .DS_Store

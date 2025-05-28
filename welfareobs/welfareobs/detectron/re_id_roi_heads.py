@@ -118,6 +118,7 @@ class ReIdROIHeads(StandardROIHeads):
                 # )
                 reid_proposals[i] = self.reid_tx(cropped_region).unsqueeze(0) # Add zero batch to left
                 # debug reid proposals
+                # print(reid_proposals[i].shape)
                 # self.dump_crop(reid_proposals[i])
             if len(reid_proposals.keys()) > 0:
                 tmp_embeddings = self.reid_head.forward([(reid_proposals[o],0) for o in reid_proposals.keys()])
@@ -139,7 +140,8 @@ class ReIdROIHeads(StandardROIHeads):
             _scores = list(output.get("scores").cpu().numpy())
             print("Boxes:")
             for c, b, s in zip(_classes, _boxes, _scores):
-                print(f"Class: {c} Score: {s} = {b}")
+            	if c>0:
+	                print(f"Class: {c} Score: {s} = {b}")
 
     def dump_crop(self, image):    # Convert ImageList to a batch of tensors
         self.debug_np("Crop -> input", image)

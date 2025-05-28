@@ -143,7 +143,7 @@ def get_configuration(
                 )
             ),
             device=device,
-            classes_to_reid=[23]
+            classes_to_reid=[23, 24, 25]  #23 on CUDA - somehow CPU breaks this.
         ),
         pixel_mean=constants["imagenet_bgr256_mean"],
         pixel_std=constants["imagenet_bgr256_std"],
