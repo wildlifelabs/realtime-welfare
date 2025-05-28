@@ -74,7 +74,7 @@ rpi-build: ## Build Docker Environment (RPi)
 rpi-run-pipeline: ## Run the pipeline (RPi headless)
 	echo $(DATASET_ROOT)
 	mkdir -p $(DATASET_ROOT)/hugging-face-cache
-	docker run --shm-size=1g -it --privileged --gpus all --rm -p 8888:8888 -p 8008:8008 -v ./:/project -v $(DATASET_ROOT):/project/data -v $(DATASET_ROOT)/hugging-face-cache:/root/.cache --name welfare-obs-instance welfare-obs python /project/run_pipeline.py -c rpi-non-rtsp-test.json
+	docker run --shm-size=1g -it --privileged --rm -p 8888:8888 -p 8008:8008 -v ./:/project -v $(DATASET_ROOT):/project/data -v $(DATASET_ROOT)/hugging-face-cache:/root/.cache --name welfare-obs-instance welfare-obs python /project/run_pipeline.py -c rpi-non-rtsp-test.json
 
 #### LINUX X64 CUDA ####
 
