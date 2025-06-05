@@ -57,6 +57,11 @@ jetson-run-pipeline: ## Run the Jetson CUDA pipeline (Jetson Xavier headless)
 	mkdir -p $(DATASET_ROOT)/hugging-face-cache
 	docker run --shm-size=1g -it --runtime nvidia --privileged --rm -p 8888:8888 -p 8008:8008 -v ./:/project -v $(DATASET_ROOT):/project/data -v $(DATASET_ROOT)/hugging-face-cache:/root/.cache --name welfare-obs-instance welfare-obs python /project/run_pipeline.py -c jetson-non-rtsp-test.json
 
+jetson-run-pipeline-single: ## Run the Jetson CUDA pipeline (Jetson Xavier headless)
+	echo $(DATASET_ROOT)
+	mkdir -p $(DATASET_ROOT)/hugging-face-cache
+	docker run --shm-size=1g -it --runtime nvidia --privileged --rm -p 8888:8888 -p 8008:8008 -v ./:/project -v $(DATASET_ROOT):/project/data -v $(DATASET_ROOT)/hugging-face-cache:/root/.cache --name welfare-obs-instance welfare-obs python /project/run_pipeline.py -c jetson-non-rtsp-test-single.json
+
 #### MACINTOSH OSX ####
 
 mac-build: ## Build Docker Environment (Mac)
@@ -67,6 +72,11 @@ mac-run-pipeline: ## Run the CUDA pipeline (Mac headless)
 	mkdir -p $(DATASET_ROOT)/hugging-face-cache
 	docker run --shm-size=1g -it --privileged --rm -p 8888:8888 -p 8008:8008 -v ./:/project -v $(DATASET_ROOT):/project/data -v $(DATASET_ROOT)/hugging-face-cache:/root/.cache --name welfare-obs-instance welfare-obs python /project/run_pipeline.py -c mac-non-rtsp-test.json
 
+mac-run-pipeline-single: ## Run the CUDA pipeline (Mac headless)
+	echo $(DATASET_ROOT)
+	mkdir -p $(DATASET_ROOT)/hugging-face-cache
+	docker run --shm-size=1g -it --privileged --rm -p 8888:8888 -p 8008:8008 -v ./:/project -v $(DATASET_ROOT):/project/data -v $(DATASET_ROOT)/hugging-face-cache:/root/.cache --name welfare-obs-instance welfare-obs python /project/run_pipeline.py -c mac-non-rtsp-test-single.json
+
 #### RASPBERRY PI ####
 
 rpi-build: ## Build Docker Environment (RPi)
@@ -76,6 +86,11 @@ rpi-run-pipeline: ## Run the pipeline (RPi headless)
 	echo $(DATASET_ROOT)
 	mkdir -p $(DATASET_ROOT)/hugging-face-cache
 	docker run --shm-size=1g -it --privileged --rm -p 8888:8888 -p 8008:8008 -v ./:/project -v $(DATASET_ROOT):/project/data -v $(DATASET_ROOT)/hugging-face-cache:/root/.cache --name welfare-obs-instance welfare-obs python /project/run_pipeline.py -c rpi-non-rtsp-test.json
+
+rpi-run-pipeline-single: ## Run the pipeline (RPi headless)
+	echo $(DATASET_ROOT)
+	mkdir -p $(DATASET_ROOT)/hugging-face-cache
+	docker run --shm-size=1g -it --privileged --rm -p 8888:8888 -p 8008:8008 -v ./:/project -v $(DATASET_ROOT):/project/data -v $(DATASET_ROOT)/hugging-face-cache:/root/.cache --name welfare-obs-instance welfare-obs python /project/run_pipeline.py -c rpi-non-rtsp-test-single.json
 
 #### LINUX X64 CUDA ####
 
