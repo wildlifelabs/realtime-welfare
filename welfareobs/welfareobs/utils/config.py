@@ -53,7 +53,7 @@ class Config(object):
                 raise KeyError(f"Key '{key}' in {src_key} not found in the config file {self.__filename}")
         return value
 
-    def exists(self, key: str) -> bool:
+    def exists(self, src_key: str) -> bool:
         """
         Confirm a key (path of keys) exists the JSON dict
         :param key: dot notation hierarchical key
