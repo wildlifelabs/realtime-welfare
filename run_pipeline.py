@@ -27,16 +27,6 @@ import argparse
 
 
 def main():
-    # we map the file suffix search to an enscript language file syntax highlight support
-    # See `enscript --help-highlight` for more information
-    mapping = {
-        ".py": "python",
-        ".json": "bash",
-        "Dockerfile": "makefile",
-        ".txt": "bash",
-        ".sh": "bash",
-        "Makefile": "makefile"
-    }
     parser = argparse.ArgumentParser(description='Process pipeline')
     parser.add_argument('-c', '--config',
                         help='JSON Configuration to use for running the pipeline (filename only)',
@@ -48,8 +38,20 @@ def main():
     )
 
     runner: Runner = Runner(cfg)
-    runner.run(107894) # this matches the performance-history-size configuration
-    runner.performance.save("/project/performance.csv")
+    run_count = None
+    if cfg.exists("settings.run-count"):
+        run_count=cfg.as_int("settings.run-count")
+
+    run_seconds = None
+    if cfg.exists("settings.run-seconds"):
+        run_seconds=cfg.as_int("settings.run-seconds")
+
+    performance_csv_filename = None
+    if cfg.exists("settings.performance-csv-filename"):
+        performance_csv_filename=cfg.as_string("settings.performance-csv-filename")
+    
+    runner.run(run_count, run_seconds) # 107894 matches the performance-history-size configuration of the evaluation dataset
+    runner.performance.save(performance_csv_filename)
 
 
 if __name__ == "__main__":

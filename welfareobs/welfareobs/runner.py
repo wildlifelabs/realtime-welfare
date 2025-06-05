@@ -25,6 +25,8 @@ from welfareobs.utils.config import Config
 from welfareobs.handlers.abstract_handler import AbstractHandler
 from welfareobs.pipeline_step import PipelineStep
 from welfareobs.utils.performance_monitor import PerformanceMonitor
+import time
+from datetime import timedelta
 
 
 class Runner(object):
@@ -66,12 +68,15 @@ class Runner(object):
             job.teardown()
         self.__has_torndown = True
 
-    def run(self, run_count:None|int=None):
+    def run(self, run_count:None|int=None, seconds_duration:None|int=None):
         if not self.__has_setup:
             print("Calling setup")
             self.__setup()
         if self.__has_torndown:
             raise RuntimeError("Already torn down")
+        end_time = -1
+        if seconds_duration is not None:
+            end_time = time.time() + seconds_duration
         trigger: bool = True
         while trigger:
             self.__performance_monitor.track_start()
@@ -86,6 +91,9 @@ class Runner(object):
             if run_count is not None:
                 run_count -= 1
                 if run_count == 0:
+                    trigger = False
+            if seconds_duration is not None:
+                if time.time() >= end_time:
                     trigger = False
             self.__performance_monitor.track_end()
         self.__teardown()

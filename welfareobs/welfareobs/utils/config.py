@@ -53,6 +53,21 @@ class Config(object):
                 raise KeyError(f"Key '{key}' in {src_key} not found in the config file {self.__filename}")
         return value
 
+    def exists(self, key: str) -> bool:
+        """
+        Confirm a key (path of keys) exists the JSON dict
+        :param key: dot notation hierarchical key
+        :return: bool if the key can be navigated in the JSON heirarchy
+        """
+        keys = src_key.split('.')
+        value = self.__data
+        for key in keys:
+            if key in value:
+                value = value[key]
+            else:
+                return False
+        return True
+    
     def as_list(self, key: str) -> [str]:
         """
         As a list (note: a single value will be converted to an array with that item as the only element.
