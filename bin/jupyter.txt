@@ -9,6 +9,7 @@ nbconvert
 ipython
 ipykernel
 ipywidgets
-
+# Tensorboard Support 
+standard-imghdr
 fpdf
 

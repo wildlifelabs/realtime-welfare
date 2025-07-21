@@ -26,11 +26,13 @@ from PIL import Image
 from welfareobs.utils.performance_monitor import PerformanceMonitor
 import numpy as np
 from welfareobs.utils.bgr_transform import BGRTransform 
+from welfareobs.utils.padded_square_transform import PaddedSquareTransform
 
 
 def image_tensor(image: any, size: int, device: str):
     """tx image, returns cuda tensor"""
     transform = torchvision.transforms.Compose([
+        PaddedSquareTransform(fill=0, padding_mode="edge"),
         torchvision.transforms.PILToTensor(), # Convert a PIL Image or ndarray to tensor and scale the values 0->255 to 0.0->1.0
         torchvision.transforms.Resize(
             size=(size,size),
@@ -52,5 +54,6 @@ def image_loader(image_name: str, size: int, device: str):
 
 def predict(img_list: list, model: torch.nn.Module):
     with torch.no_grad():
-        outputs = model([{"image": img, "height": 384, "width": 384} for img in img_list])
+        # changed from 384 at the start of the pipeline to HD resolution 
+        outputs = model([{"image": img, "height": 1920, "width": 1920} for img in img_list])
     return outputs  # usually returns list of results, one per image

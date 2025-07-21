@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Module Name: 
-Description: 
+Module Name: bgr transform
+Description: perform a RGB->BGR transform to be used in TorchVision transform compose 
 
 Copyright (C) 2025 J.Cincotta
 

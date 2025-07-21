@@ -27,8 +27,10 @@ from torch.optim import SGD, Adam, SparseAdam, AdamW, ASGD, LBFGS
 from wildlife_tools.data import WildlifeDataset
 from wildlife_tools.features import DeepFeatures
 from wildlife_tools.train import ArcFaceLoss, BasicTrainer
+from welfareobs.detectron.welfareobs_trainer import WelfareObsTrainer
 from welfareobs.utils.config import Config
 from welfareobs.detectron.welfareobs_dataset import WelfareObsDataset
+from welfareobs.utils.padded_square_transform import PaddedSquareTransform
 import os
 import pandas as pd
 
@@ -101,6 +103,7 @@ for ptr in sets:
         root=config[f"{ptr}.root"],
         annotations_file=config[f"{ptr}.annotations-filename"],
         transform = T.Compose([
+            PaddedSquareTransform(fill=0, padding_mode="edge"),    
             T.Resize(
                 size=(dimensions,dimensions),
                 interpolation=T.InterpolationMode.BILINEAR,
@@ -144,23 +147,24 @@ for ptr in sets:
         optimizer = LBFGS(params=params, lr=learning_rate, max_iter=config.as_int(f"{ptr}.learning-rate-max-iterations"))
     if optimizer is None:
         raise SyntaxError("Unsupported optimizer")
-    min_lr = optimizer.defaults.get("lr") * 1e-3
+    min_lr = optimizer.defaults.get("lr")
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=100, eta_min=min_lr)
-    trainer = BasicTrainer(
+    trainer = WelfareObsTrainer(
+        working_directory=outpath,
         dataset=dataset,
         model=backbone,
         objective=objective,
         optimizer=optimizer,
         scheduler=scheduler,
         batch_size=config.as_int(f"{ptr}.trainer-batch-size"),
-        accumulation_steps=8,
+        accumulation_steps=1,
         num_workers=config.as_int(f"{ptr}.trainer-workers"),
         epochs=config.as_int(f"{ptr}.trainer-epochs"),
         device=device,
     )
     print(f"Training {config.as_int(f"{ptr}.trainer-epochs")} epochs...")
     trainer.train()
-    trainer.save(outpath)
+    trainer.save()
     extractor = DeepFeatures(backbone,
                              device=device,
                              batch_size=config.as_int(f"{ptr}.features-batch-size"),
