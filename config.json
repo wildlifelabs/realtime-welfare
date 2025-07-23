@@ -15,7 +15,8 @@
         "optimizer": "SGD",
         "learning-rate": "0.001",
         "learning-rate-momentum": "0.9",
-        "device": "cuda"
+        "device": "cuda",
+        "deterministic": "true"
     },
     "wod-swin": {
         "comment": "Training empty SWIN model",
@@ -32,7 +33,8 @@
         "optimizer": "SGD",
         "learning-rate": "0.001",
         "learning-rate-momentum": "0.9",
-        "device": "cuda"
+        "device": "cuda",
+        "deterministic": "true"        
     },
     "wod-md-adam": {
         "comment": "Fine-tuning Mega Descriptor with Adam optimizer",
@@ -42,12 +44,13 @@
         "backbone": "hf-hub:BVRA/wildlife-mega-L-384",
         "trainer-batch-size": "32",
         "trainer-workers": "2",
-        "trainer-epochs": "400",
+        "trainer-epochs": "50",
         "features-batch-size": "64",
         "features-workers": "2",
         "dimensions": "384",
         "optimizer": "Adam",
-        "learning-rate": "0.001",
-        "device": "cuda"
+        "learning-rate": "0.0003",
+        "device": "cuda",
+        "deterministic": "true"        
     }
 }

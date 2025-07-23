@@ -99,11 +99,10 @@ cuda-jupyter: cuda-build ## Start Jupyter (for CUDA)
 	mkdir -p $(DATASET_ROOT)/hugging-face-cache
 	docker run --shm-size=1g -it --privileged --gpus all --rm -p 8888:8888 -p 8008:8008 -v ./:/project -v $(DATASET_ROOT):/project/data -v $(DATASET_ROOT)/hugging-face-cache:/root/.cache --name welfare-obs-instance welfare-obs /script/jupyter.sh /project
 
-cuda-train-model: cuda-build ## Train model and start TensorBoard on 8008 (without Jupyter running) (for CUDA)
+cuda-train-model: cuda-build ## Train model based on the Config (Only works on X86 CUDA) 
 	echo $(DATASET_ROOT)
 	mkdir -p $(DATASET_ROOT)/hugging-face-cache
 	docker run --shm-size=1g -it --privileged --gpus all --rm -p 8888:8888 -p 8008:8008 -v ./:/project -v $(DATASET_ROOT):/project/data -v $(DATASET_ROOT)/hugging-face-cache:/root/.cache --name welfare-obs-instance welfare-obs python /project/train_model.py
-	docker exec -it welfare-obs-instance tensorboard --logdir /project/data --port 8008 --host 0.0.0.0
 
 cuda-force-rebuild: ## Forced ReBuild Docker Environment
 	docker build --no-cache -t welfare-obs -f Dockerfile .
@@ -122,8 +121,11 @@ cuda-run-pipeline: ## Run the CUDA pipeline (headless)
 connect: ## Connect to Container
 	docker exec -it welfare-obs-instance bash
 
-train-model: ## Train the models based on config (Only works on X86 CUDA)
-	docker exec -it welfare-obs-instance /project/bin/py.sh /project/train_model.py
+tensorboard: ## Start tensorboard on running instance (either cuda-jupyter or cuda-train-model)
+	docker exec -it welfare-obs-instance tensorboard --logdir /project/data --port 8008 --host 0.0.0.0
+
+# train-model: ## Train the models based on config (Only works on X86 CUDA)
+# 	docker exec -it welfare-obs-instance /project/bin/py.sh /project/train_model.py
 
 check-cuda: ## Check CUDA is working
 	docker exec -it welfare-obs-instance /project/bin/py.sh /project/check_cuda.py

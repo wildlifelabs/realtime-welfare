@@ -22,6 +22,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 """
 import os
+import random
 import numpy as np
 import torch
 import torch.backends.cudnn
@@ -141,7 +142,7 @@ class WelfareObsTrainer(BasicTrainer):
         checkpoint["optimizer"] = self.optimizer.state_dict()
         checkpoint["epoch"] = self.epoch
         if save_rng:
-            checkpoint["rng_states"] = get_random_states()
+            checkpoint["rng_states"] = self.get_random_states()
         if self.scheduler:
             checkpoint["scheduler"] = self.scheduler.state_dict()
         torch.save(checkpoint, os.path.join(self.working_directory, file_name))
@@ -157,10 +158,46 @@ class WelfareObsTrainer(BasicTrainer):
         if "epoch" in checkpoint:
             self.epoch = checkpoint["epoch"]
         if "rng_states" in checkpoint and load_rng:
-            set_random_states(checkpoint["rng_states"])
+            self.set_random_states(checkpoint["rng_states"])
         if "scheduler" in checkpoint and self.scheduler:
             self.scheduler.load_state_dict(checkpoint["scheduler"])
         
-        
+    def set_seed(self, seed=0):
+        os.environ["PYTHONHASHSEED"] = str(seed)
+        random.seed(seed)
+        np.random.seed(seed)
+        torch.manual_seed(seed)
+        torch.cuda.manual_seed(seed)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
+    
+    def set_random_states(self, states):
+        if "os_rng_state" in states and states["os_rng_state"]:
+            os.environ["PYTHONHASHSEED"] = states["os_rng_state"]
+        if "random_rng_state" in states:
+            random.setstate(states["random_rng_state"])
+        if "numpy_rng_state" in states:
+            np.random.set_state(states["numpy_rng_state"])
+        if "torch_rng_state" in states:
+            torch.set_rng_state(states["torch_rng_state"])
+        if "torch_cuda_rng_state" in states:
+            torch.cuda.set_rng_state(states["torch_cuda_rng_state"])
+        if "torch_cuda_rng_state_all" in states:
+            torch.cuda.set_rng_state_all(states["torch_cuda_rng_state_all"])
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
+    
+    def get_random_states(self):
+        """Gives dictionary of random states for reproducibility."""
+        states = {}
+        states["os_rng_state"] = os.environ.get("PYTHONHASHSEED")
+        states["random_rng_state"] = random.getstate()
+        states["numpy_rng_state"] = np.random.get_state()
+        states["torch_rng_state"] = torch.get_rng_state()
+        if torch.cuda.is_available():
+            states["torch_cuda_rng_state"] = torch.cuda.get_rng_state()
+            states["torch_cuda_rng_state_all"] = torch.cuda.get_rng_state_all()
+        return states        
+    
 
     

@@ -95,6 +95,7 @@ for ptr in sets:
     use_opt = config[f"{ptr}.optimizer"]
     name = config[f"{ptr}.name"]
     device = config[f"{ptr}.device"]
+    deterministic = config.as_bool(f"{ptr}.deterministic")
     outpath = f"/project/data/results/{name}"
     print(f"Processing {ptr} to {outpath}.")
     os.makedirs(outpath, exist_ok=True)
@@ -162,6 +163,8 @@ for ptr in sets:
         epochs=config.as_int(f"{ptr}.trainer-epochs"),
         device=device,
     )
+    if deterministic:
+        trainer.set_seed(seed=1234)
     print(f"Training {config.as_int(f"{ptr}.trainer-epochs")} epochs...")
     trainer.train()
     trainer.save()
