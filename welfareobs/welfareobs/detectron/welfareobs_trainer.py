@@ -29,6 +29,7 @@ import torch.backends.cudnn
 from tqdm import tqdm
 from wildlife_tools.train import ArcFaceLoss, BasicTrainer
 from torch.utils.tensorboard import SummaryWriter
+from sklearn.metrics import precision_score, accuracy_score
 
 
 class WelfareObsTrainer(BasicTrainer):
@@ -115,6 +116,7 @@ class WelfareObsTrainer(BasicTrainer):
             x, y = batch
             x, y = x.to(self.device), y.to(self.device)
             out = model(x)
+
             loss = self.objective(out, y)
             loss.backward()
             if (i - 1) % self.accumulation_steps == 0:
