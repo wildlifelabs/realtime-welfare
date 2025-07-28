@@ -93,6 +93,13 @@ class WelfareObsTrainer(BasicTrainer):
         self.checkpoint_epochs = checkpoint_epochs
         self.writer = SummaryWriter(log_dir=working_directory)
 
+    def inspect(self, item: any):
+        print(str(type(item)))
+        print(str(item))
+        print(item.shape)        
+        print(item.max(1))
+        print("----")
+    
     def train(self):
         loader = torch.utils.data.DataLoader(
             self.dataset,
@@ -116,7 +123,7 @@ class WelfareObsTrainer(BasicTrainer):
             x, y = batch
             x, y = x.to(self.device), y.to(self.device)
             out = model(x)
-
+            self.inspect(out)
             loss = self.objective(out, y)
             loss.backward()
             if (i - 1) % self.accumulation_steps == 0:
