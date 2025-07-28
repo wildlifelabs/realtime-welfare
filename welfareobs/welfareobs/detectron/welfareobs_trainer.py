@@ -93,13 +93,6 @@ class WelfareObsTrainer(BasicTrainer):
         self.checkpoint_epochs = checkpoint_epochs
         self.writer = SummaryWriter(log_dir=working_directory)
 
-    def inspect(self, item: any):
-        print(str(type(item)))
-        print(str(item))
-        print(item.shape)        
-        print(item.max(1))
-        print("----")
-    
     def train(self):
         loader = torch.utils.data.DataLoader(
             self.dataset,
@@ -116,30 +109,51 @@ class WelfareObsTrainer(BasicTrainer):
     def train_epoch(self, loader):
         model = self.model.train()
         losses = []
+        accuracies = []
+        precisions = []
         total = 0
         correct = 0
         count = len(loader)
+        y_predict: torch.Tensor | None = None
+
         for i, batch in enumerate(tqdm(loader, desc=f"Epoch {self.epoch}: ", mininterval=1, ncols=100)):
             x, y = batch
             x, y = x.to(self.device), y.to(self.device)
             out = model(x)
-            self.inspect(out)
             loss = self.objective(out, y)
             loss.backward()
             if (i - 1) % self.accumulation_steps == 0:
                 self.optimizer.step()
                 self.optimizer.zero_grad()
-            if (i - 1) % 10 == 0:
-                _, predicted = out.max(1)
-                total += y.size(0)
-                correct += predicted.eq(y).sum().item()
-                self.writer.add_scalar('Training/Loss', np.sum(losses) / (i + 1), self.epoch * count + i)
-                self.writer.add_scalar('Training/Accuracy', 100. * correct / total, self.epoch * count + i)
-            losses.append(loss.detach().cpu())
+
+            prediction_classes = []
+            for index, item in enumerate(out):
+                item = item["instances"]
+                step_result = 0
+                if item.has("reid_embeddings"):
+                    _reids = list(item.get("reid_embeddings").cpu().numpy().flatten())
+                    _scores = list(item.get("scores").cpu().numpy())  # kept this in case we want to threshold
+                    for i in range(len(item)):
+                        if _reids[i] != -1:
+                            step_result = _reids[i]
+                prediction_classes.append(step_result)
+
+            tmp_loss = loss.detach().cpu()
+            tmp_accuracy = accuracy_score(y.cpu(), prediction_classes)
+            tmp_precision = precision_score(y.cpu(), prediction_classes)
+
+            losses.append(tmp_loss)
+            accuracies.append(tmp_accuracy)
+            precisions.append(tmp_precision)
+
+            self.writer.add_scalar('Training/Loss', tmp_loss, self.epoch * count + i)
+            self.writer.add_scalar('Training/Accuracy', tmp_accuracy, self.epoch * count + i)
+            self.writer.add_scalar('Training/Precision', tmp_precision, self.epoch * count + i)
         if self.scheduler:
             self.scheduler.step()
-        self.writer.add_scalar('Epoch/Loss', np.sum(losses) / (count + 1), self.epoch * count + count)
-        self.writer.add_scalar('Epoch/Accuracy', 100. * correct / total, self.epoch * count + count)
+        self.writer.add_scalar('Epoch/Loss', np.mean(losses), self.epoch * count + count)
+        self.writer.add_scalar('Epoch/Accuracy', np.mean(accuracies), self.epoch * count + count)
+        self.writer.add_scalar('Epoch/Precision', np.mean(precisions), self.epoch * count + count)
         return {"train_loss_epoch_avg": np.mean(losses)}
 
     def save(self, file_name="checkpoint.pth", save_rng=True, **kwargs):
