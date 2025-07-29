@@ -30,6 +30,8 @@ from tqdm import tqdm
 from wildlife_tools.train import ArcFaceLoss, BasicTrainer
 from torch.utils.tensorboard import SummaryWriter
 from sklearn.metrics import precision_score, accuracy_score
+from sklearn.exceptions import UndefinedMetricWarning
+import warnings
 
 
 class WelfareObsTrainer(BasicTrainer):
@@ -94,6 +96,7 @@ class WelfareObsTrainer(BasicTrainer):
         self.writer = SummaryWriter(log_dir=working_directory)
 
     def train(self):
+        warnings.filterwarnings("ignore", category=UndefinedMetricWarning)
         loader = torch.utils.data.DataLoader(
             self.dataset,
             batch_size=self.batch_size,
@@ -114,41 +117,30 @@ class WelfareObsTrainer(BasicTrainer):
         total = 0
         correct = 0
         count = len(loader)
-        y_predict: torch.Tensor | None = None
-
+        predictions = []
         for i, batch in enumerate(tqdm(loader, desc=f"Epoch {self.epoch}: ", mininterval=1, ncols=100)):
             x, y = batch
             x, y = x.to(self.device), y.to(self.device)
             out = model(x)
             loss = self.objective(out, y)
+            logits = self.objective.loss.get_logits(out)
+            probs = torch.nn.functional.softmax(logits, dim=1)
+            predicted = torch.argmax(probs, dim=1)
             loss.backward()
             if (i - 1) % self.accumulation_steps == 0:
                 self.optimizer.step()
                 self.optimizer.zero_grad()
-
-            prediction_classes = []
-            for index, item in enumerate(out):
-                item = item["instances"]
-                step_result = 0
-                if item.has("reid_embeddings"):
-                    _reids = list(item.get("reid_embeddings").cpu().numpy().flatten())
-                    _scores = list(item.get("scores").cpu().numpy())  # kept this in case we want to threshold
-                    for i in range(len(item)):
-                        if _reids[i] != -1:
-                            step_result = _reids[i]
-                prediction_classes.append(step_result)
-
+            
             tmp_loss = loss.detach().cpu()
-            tmp_accuracy = accuracy_score(y.cpu(), prediction_classes)
-            tmp_precision = precision_score(y.cpu(), prediction_classes)
-
+            tmp_accuracy = accuracy_score(y.cpu(), predicted.cpu())
+            tmp_precision = precision_score(y.cpu(), predicted.cpu(), average=None)
             losses.append(tmp_loss)
             accuracies.append(tmp_accuracy)
-            precisions.append(tmp_precision)
-
+            precisions.append(tmp_precision[0])
+            
             self.writer.add_scalar('Training/Loss', tmp_loss, self.epoch * count + i)
             self.writer.add_scalar('Training/Accuracy', tmp_accuracy, self.epoch * count + i)
-            self.writer.add_scalar('Training/Precision', tmp_precision, self.epoch * count + i)
+            self.writer.add_scalar('Training/Precision', tmp_precision[0], self.epoch * count + i)
         if self.scheduler:
             self.scheduler.step()
         self.writer.add_scalar('Epoch/Loss', np.mean(losses), self.epoch * count + count)
