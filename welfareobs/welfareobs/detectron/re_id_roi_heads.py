@@ -26,8 +26,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from detectron2.modeling.roi_heads import StandardROIHeads
 from detectron2.modeling.poolers import ROIPooler
-from welfareobs.detectron.re_id_head import ReIdHead
 from detectron2.structures import Boxes, ImageList, Instances
+from welfareobs.detectron.re_id_head import ReIdHead
 from typing import Optional, List
 import json
 # from welfareobs.utils.performance_monitor import PerformanceMonitor
@@ -81,7 +81,7 @@ class ReIdROIHeads(StandardROIHeads):
                 max_size=None,
                 antialias=True
             ),  # Resize the input image to the given size
-            BGRTransform(),  # since our data source is BGR this will reverge it back to RGB
+            BGRTransform(),  # since our data source is BGR this will revert it back to RGB
             T.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)), # renormalise fragments as RGB      
         ])
 

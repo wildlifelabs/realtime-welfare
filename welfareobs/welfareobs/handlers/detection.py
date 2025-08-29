@@ -48,7 +48,8 @@ class DetectionHandler(AbstractHandler):
 
     detection config file looks like this:
         {
-          "dimensions": "384",
+          "input-dimensions": "384",
+          "reid-dimensions": "384",
           "reid-model-root": "/project/data/results/wod-md",
           "reid-timm-backbone": "hf-hub:BVRA/wildlife-mega-L-384",
           "segmentation-checkpoint": "/project/data/detectron2_models/mask_rcnn_R_101_FPN_3x/model_final_a3ec72.pkl"
@@ -60,7 +61,8 @@ class DetectionHandler(AbstractHandler):
         super().__init__(name, inputs, param)
         self.__model = None
         self.__current_frames = None
-        self.__dimensions: int = 0
+        self.__input_dimensions: int = 0
+        self.__reid_dimensions: int = 0
         self.__reid_model_root: str = ""
         self.__reid_timm_backbone: str = ""
         self.__segmentation_checkpoint: str = ""
@@ -71,7 +73,8 @@ class DetectionHandler(AbstractHandler):
 
     def setup(self):
         cnf: Config = Config(self.param)
-        self.__dimensions = cnf.as_int("dimensions")
+        self.__input_dimensions = cnf.as_int("input-dimensions")
+        self.__reid_dimensions = cnf.as_int("reid-dimensions")
         self.__reid_model_root = cnf.as_string("reid-model-root")
         self.__reid_timm_backbone = cnf.as_string("reid-timm-backbone")
         self.__segmentation_checkpoint = cnf.as_string("segmentation-checkpoint")
@@ -81,7 +84,7 @@ class DetectionHandler(AbstractHandler):
             get_configuration(
                 self.__reid_model_root,
                 backbone=self.__reid_timm_backbone,
-                dimensions=self.__dimensions,
+                dimensions=self.__reid_dimensions,
                 device=self.__pytorch_device
             )
         )
@@ -95,10 +98,11 @@ class DetectionHandler(AbstractHandler):
         predictions = predict(
             [image_tensor(
                 o.image,
-                self.__dimensions,
+                self.__input_dimensions,
                 self.__pytorch_device
             ) for o in self.__current_frames],
-            self.__model
+            self.__model,
+            size=self.__input_dimensions
         )
 
         for index, prediction in enumerate(predictions):

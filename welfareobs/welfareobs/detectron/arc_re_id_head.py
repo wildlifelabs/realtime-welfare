@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Module Name: re_id_head.py
-Description: ReID Detectron2 head implements deep features from https://github.com/wildlifelabs/wildlife-tools
-             from the paper by Cermak et al., "WildlifeDatasets: An Open-Source Toolkit for Animal Re-Identification"
+Module Name: arc_re_id_head.py
+Description: ReID Detectron2 head that only uses ArcFaceLoss clusters
+             adapted from the paper by Cermak et al., "WildlifeDatasets: An Open-Source Toolkit for Animal Re-Identification"
 
 
 Copyright (C) 2025 J.Cincotta
@@ -32,35 +32,26 @@ import timm
 import numpy as np
 
 
-class ReIdHead(nn.Module):
+class ArcReIdHead(nn.Module):
     def __init__(self,
                  input_dim: int,
                  model_name: str,
                  checkpoint_filename: str|None = None,
                  batch_size: int = 128,
                  num_workers: int = 1,
-                 device: str = "cuda",
-                 features_database: FeatureDataset|None = None
-                 ):
+                 device: str = "cuda"
+                ):
         super().__init__()
         # we expose this for pre-run validation only
         print(f"Using device: {device}")
         self.input_dim = input_dim
-        intermediate_model = timm.create_model(model_name, pretrained=True, num_classes=0)
+        self.intermediate_model = timm.create_model(model_name, pretrained=True, num_classes=0)
         if checkpoint_filename is not None:
-            intermediate_model.load_state_dict(torch.load(checkpoint_filename, weights_only=False, map_location=torch.device(device))['model'])
-        self.extractor = DeepFeatures(
-            intermediate_model,
-            batch_size=batch_size,
-            num_workers=0, # this fixes a reinit bug
-            device=device
-        )
-        self.features_database = features_database
+            self.intermediate_model.load_state_dict(torch.load(checkpoint_filename, weights_only=False, map_location=torch.device(device))['model'])
 
     def forward(self, x, labels=None):
-        matcher = CosineSimilarity()
-        similarity = matcher(query=self.extractor(x), database=self.features_database)
-        preds = KnnClassifier(k=1, database_labels=self.features_database.labels_string)(similarity)
-        return preds
-
+        out = self.intermediate_model(x)
+        logits = self.intermediate_model.objective.loss.get_logits(out)
+        probs = torch.nn.functional.softmax(logits, dim=1)
+        return torch.argmax(probs, dim=1)
 

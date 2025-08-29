@@ -28,7 +28,7 @@
   "detection": {
     "handler": "welfareobs.handlers.detection.DetectionHandler",
     "input": ["camera-1", "camera-2", "camera-3"],
-    "config": "/project/config/detection.json"
+    "config": "/project/config/detection-wod-md-adamw.json"
   },
   "location-1": {
     "handler": "welfareobs.handlers.location.LocationHandler",

@@ -52,8 +52,8 @@ def image_loader(image_name: str, size: int, device: str):
     return image_tensor(Image.open(image_name), size, device)
 
 
-def predict(img_list: list, model: torch.nn.Module):
+def predict(img_list: list, model: torch.nn.Module, size: int = 1920):
     with torch.no_grad():
         # changed from 384 at the start of the pipeline to HD resolution 
-        outputs = model([{"image": img, "height": 1920, "width": 1920} for img in img_list])
+        outputs = model([{"image": img, "height": size, "width": size} for img in img_list])
     return outputs  # usually returns list of results, one per image

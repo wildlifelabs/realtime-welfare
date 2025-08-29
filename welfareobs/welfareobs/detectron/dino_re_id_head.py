@@ -28,39 +28,38 @@ from wildlife_tools.similarity import CosineSimilarity
 from wildlife_tools.similarity.cosine import cosine_similarity
 from wildlife_tools.inference import KnnClassifier
 from wildlife_tools.data import WildlifeDataset, FeatureDataset
+from welfareobs.detectron.feature_net import FeatureNet
 import timm
 import numpy as np
 
 
-class ReIdHead(nn.Module):
+class DinoReIdHead(nn.Module):
     def __init__(self,
-                 input_dim: int,
                  model_name: str,
+                 num_classes: int,
+                 image_dimensions: int,
                  checkpoint_filename: str|None = None,
-                 batch_size: int = 128,
-                 num_workers: int = 1,
-                 device: str = "cuda",
-                 features_database: FeatureDataset|None = None
+                 hidden_layer_width: int = 256,
+                 hidden_layer_depth: int = 2,
+                 hidden_layer_dropout: float = 0.3,
+                 device: str = "cuda"
                  ):
         super().__init__()
         # we expose this for pre-run validation only
         print(f"Using device: {device}")
-        self.input_dim = input_dim
-        intermediate_model = timm.create_model(model_name, pretrained=True, num_classes=0)
-        if checkpoint_filename is not None:
-            intermediate_model.load_state_dict(torch.load(checkpoint_filename, weights_only=False, map_location=torch.device(device))['model'])
-        self.extractor = DeepFeatures(
-            intermediate_model,
-            batch_size=batch_size,
-            num_workers=0, # this fixes a reinit bug
-            device=device
+        self.intermediate_model = FeatureNet(
+            model_name = model_name,
+            num_classes = num_classes,
+            image_dimensions = image_dimensions,
+            hidden_dim = hidden_layer_width,
+            depth = hidden_layer_depth,
+            dropout = hidden_layer_dropout,
+            device = device
         )
-        self.features_database = features_database
+        if checkpoint_filename is not None:
+            self.intermediate_model.load(checkpoint_filename)
 
     def forward(self, x, labels=None):
-        matcher = CosineSimilarity()
-        similarity = matcher(query=self.extractor(x), database=self.features_database)
-        preds = KnnClassifier(k=1, database_labels=self.features_database.labels_string)(similarity)
-        return preds
-
+        ex = self.intermediate_model.extractor(x)
+        return self.intermediate_model(x)
 

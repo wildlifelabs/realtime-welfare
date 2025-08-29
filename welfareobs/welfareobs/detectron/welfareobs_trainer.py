@@ -163,7 +163,7 @@ class WelfareObsTrainer(BasicTrainer):
         torch.save(checkpoint, os.path.join(self.working_directory, file_name))
 
     def load(self, file_name="checkpoint.pth", load_rng=True):
-        checkpoint = torch.load(self.working_directory, map_location=torch.device(self.device))
+        checkpoint = torch.load(os.path.join(self.working_directory, file_name), map_location=torch.device(self.device), weights_only=False)
         if "model" in checkpoint:
             self.model.load_state_dict(checkpoint["model"])
         if "objective" in checkpoint:

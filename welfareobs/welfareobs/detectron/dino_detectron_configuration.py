@@ -36,7 +36,7 @@ from detectron2.modeling.roi_heads import (
     FastRCNNConvFCHead,
 )
 
-from welfareobs.detectron.re_id_head import ReIdHead
+from welfareobs.detectron.dino_re_id_head import DinoReIdHead
 from welfareobs.detectron.re_id_roi_heads import ReIdROIHeads
 from wildlife_tools.data import FeatureDataset
 
@@ -56,8 +56,7 @@ constants = dict(
 
 def get_configuration(
         root: str,
-        backbone: str = "hf-hub:BVRA/wildlife-mega-L-384",
-        dimensions: int = 384,
+        dimensions: int,
         device: str = "cuda"
 ):
     return L(GeneralizedRCNN)(
@@ -89,7 +88,7 @@ def get_configuration(
             ),
             box2box_transform=L(Box2BoxTransform)(weights=[1.0, 1.0, 1.0, 1.0]),
             batch_size_per_image=256,
-            positive_fraction=0.25,
+            positive_fraction=0.5,
             pre_nms_topk=(2000, 1000),
             post_nms_topk=(1000, 1000),
             nms_thresh=0.7,
@@ -99,7 +98,7 @@ def get_configuration(
             batch_size_per_image=512,
             positive_fraction=0.25,
             proposal_matcher=L(Matcher)(
-                thresholds=[0.5], labels=[0, 1], allow_low_quality_matches=True
+                thresholds=[0.5], labels=[0, 1], allow_low_quality_matches=False
             ),
             box_in_features=["p2", "p3", "p4", "p5"],
             box_pooler=L(ROIPooler)(
@@ -115,8 +114,7 @@ def get_configuration(
             ),
             box_predictor=L(FastRCNNOutputLayers)(
                 input_shape=ShapeSpec(channels=1024),
-                test_score_thresh=0.0,
-                test_nms_thresh=0.4,
+                test_score_thresh=0.05,
                 box2box_transform=L(Box2BoxTransform)(weights=(10, 10, 5, 5)),
                 num_classes="${..num_classes}",
             ),
@@ -132,16 +130,15 @@ def get_configuration(
                 num_classes="${..num_classes}",
                 conv_dims=[256, 256, 256, 256, 256],
             ),
-            reid_head=L(ReIdHead)(
-                input_dim=dimensions,
-                model_name=backbone,
-                checkpoint_filename=os.path.join(root, "checkpoint.pth"),
-                batch_size=1,
-                num_workers=1,
-                device=device,
-                features_database=L(FeatureDataset.from_file)(
-                    path=os.path.join(root, "similarity.pkl")
-                )
+            reid_head=L(DinoReIdHead)(
+                 model_name="dinov2_vitl14",
+                 num_classes=4,
+                 image_dimensions=dimensions,
+                 checkpoint_filename=os.path.join(root, "checkpoint.pth"),
+                 hidden_layer_width=256,
+                 hidden_layer_depth=2,
+                 hidden_layer_dropout=0.3,
+                 device=device
             ),
             device=device,
             classes_to_reid=[23, 24, 25]  #23 on CUDA - somehow CPU breaks this.

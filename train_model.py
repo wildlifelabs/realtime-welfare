@@ -116,7 +116,7 @@ for ptr in sets:
             T.ToTensor(),  # Convert a PIL Image or ndarray to tensor and scale the values 0->255 to 0.0->1.0
             T.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),  # output[channel] = (input[channel] - mean[channel]) / std[channel] (this is the mapping for ImageNet RGB)
         ]),
-        img_load="full", # "bbox_mask",
+        img_load="bbox", # "bbox_mask",
         col_path="path",
         col_label="identity",
         load_label=True
@@ -168,7 +168,7 @@ for ptr in sets:
     print(f"Training {config.as_int(f"{ptr}.trainer-epochs")} epochs...")
     trainer.train()
     trainer.save()
-    extractor = DeepFeatures(backbone,
+    extractor = DeepFeatures(trainer.model,
                              device=device,
                              batch_size=config.as_int(f"{ptr}.features-batch-size"),
                              num_workers=config.as_int(f"{ptr}.features-workers")
