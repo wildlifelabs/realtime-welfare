@@ -104,7 +104,7 @@ for ptr in sets:
         root=config[f"{ptr}.root"],
         annotations_file=config[f"{ptr}.annotations-filename"],
         transform = T.Compose([
-            PaddedSquareTransform(fill=0, padding_mode="edge"),    
+            PaddedSquareTransform(fill=0, padding_mode="edge"),   # edge or constant (can change performance of the model) 
             T.Resize(
                 size=(dimensions,dimensions),
                 interpolation=T.InterpolationMode.BILINEAR,

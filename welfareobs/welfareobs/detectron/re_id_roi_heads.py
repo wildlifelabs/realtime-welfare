@@ -109,6 +109,11 @@ class ReIdROIHeads(StandardROIHeads):
                 # convert to a set of proposals (multiple individuals)
                 x1, y1, x2, y2 = instances[ptr].pred_boxes[i].tensor[0].cpu().numpy()
                 x1, y1, x2, y2 = map(int, [x1, y1, x2, y2])
+                if (x2-x1 < 2) or (y2-y1 < 2):
+                    # this code deals with lower NMS threshold pushing zero-sized samples into the reid pipeline
+                    # so we up the threshold to 2 pixels. This should be made configurable 
+                    # TODO: make this magic number configuration
+                    continue
                 cropped_region = images[ptr][:,y1:y2, x1:x2]
                 # cropped_region = F.interpolate(
                 #     cropped_region.unsqueeze(0),
