@@ -1,5 +1,5 @@
 {
-  "input-dimensions": "1920",
+  "input-dimensions": "1024",
   "reid-dimensions": "384",
   "reid-model-root": "/project/data/results/wod-md-adamw",
   "reid-timm-backbone": "hf-hub:BVRA/wildlife-mega-L-384",

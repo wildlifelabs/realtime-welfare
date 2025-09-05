@@ -57,3 +57,4 @@ def predict(img_list: list, model: torch.nn.Module, size: int = 1920):
         # changed from 384 at the start of the pipeline to HD resolution 
         outputs = model([{"image": img, "height": size, "width": size} for img in img_list])
     return outputs  # usually returns list of results, one per image
+

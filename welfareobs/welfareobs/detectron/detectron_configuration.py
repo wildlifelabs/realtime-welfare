@@ -85,14 +85,14 @@ def get_configuration(
                 offset=0.0,
             ),
             anchor_matcher=L(Matcher)(
-                thresholds=[0.3, 0.7], labels=[0, -1, 1], allow_low_quality_matches=False
+                thresholds=[0.5, 0.7], labels=[0, -1, 1], allow_low_quality_matches=False
             ),
             box2box_transform=L(Box2BoxTransform)(weights=[1.0, 1.0, 1.0, 1.0]),
             batch_size_per_image=256,
             positive_fraction=0.25,
             pre_nms_topk=(2000, 1000),
             post_nms_topk=(1000, 1000),
-            nms_thresh=0.4, #0.7 
+            nms_thresh=0.7,
         ),
         roi_heads=L(ReIdROIHeads)(
             num_classes=80,
@@ -116,7 +116,7 @@ def get_configuration(
             box_predictor=L(FastRCNNOutputLayers)(
                 input_shape=ShapeSpec(channels=1024),
                 test_score_thresh=0.0,
-                test_nms_thresh=0.01, #0.4 lowered to improve detection
+                test_nms_thresh=0.4,
                 box2box_transform=L(Box2BoxTransform)(weights=(10, 10, 5, 5)),
                 num_classes="${..num_classes}",
             ),
