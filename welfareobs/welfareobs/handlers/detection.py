@@ -115,22 +115,51 @@ class DetectionHandler(AbstractHandler):
                 _boxes = list(prediction.get("pred_boxes").to("cpu"))
                 _masks = list(prediction.get("pred_masks").cpu().numpy())
                 _scores = list(prediction.get("scores").cpu().numpy())
-                for i in range(len(prediction)):
-                    if _reids[i] != -1:
+
+                # this adds reid support for all the classes, we amalgamate
+                # all the instances of a single reid individual. This requires
+                # merging bounding boxes and OR all masks for this individual
+                #
+                # Note this logic is also implemented in the confusion matrix
+                class_score: dict = {}
+                class_box: dict = {}
+                class_mask: dict = {}
+                class_count: dict = {}
+                class_species: dict = {}
+                
+                for r, c, s, b, m in zip(_reids, _classes, _scores, _boxes, _masks):
+                    r = int(r) # just performing a typecast
+                    class_score[r] = float(s + class_score.get(r,0))
+                    class_count[r] = int(1 + class_count.get(r,0))
+                    class_species[r] = c # just assume all correct
+                    # expand all REIDs into a single REID proposal
+                    x1, y1, x2, y2 = b.cpu().numpy()
+                    xx1, yy1, xx2, yy2 = class_box.get(r,(x1, y1, x2, y2))
+                    class_box[r] = (
+                        xx1 if xx1 < x1 else x1,
+                        yy1 if yy1 < y1 else y1,
+                        xx2 if xx2 > x2 else x2,
+                        yy2 if yy2 > y2 else y2
+                    )
+                    class_mask[r] = np.logical_or(class_mask.get(r,m), m)
+                
+                for key in class_score.keys():
+                    if key > -1:
                         output.append(
                             Individual(
                                 camera_name=self.__current_frames[index].camera_name,
-                                confidence=_scores[i],
-                                identity=_reids[i],
-                                species=_classes[i],
-                                x_min=0.0, # TODO fix these
-                                y_min=0.0,
-                                x_max=0.0,
-                                y_max=0.0,
-                                mask=_masks[i],
+                                confidence=class_score[r],
+                                identity=r,
+                                species=class_species[r],
+                                x_min=class_box[r][0], 
+                                y_min=class_box[r][1], 
+                                x_max=class_box[r][2], 
+                                y_max=class_box[r][3], 
+                                mask=class_mask[r],
                                 timestamp=self.__current_frames[index].timestamp
                             )
                         )
+
         # print(f"detection::run output size = {len(output)}")
         self.__buffer = output
 
