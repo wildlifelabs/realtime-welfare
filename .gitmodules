@@ -7,6 +7,3 @@
 [submodule "pytorch-on-jetson"]
 	path = pytorch-on-jetson
 	url = git@github.com:wildlifelabs/pytorch-on-jetson.git
-[submodule "wbia-plugin-miew-id"]
-	path = wbia-plugin-miew-id
-	url = git@github.com:wildlifelabs/wbia-plugin-miew-id.git
