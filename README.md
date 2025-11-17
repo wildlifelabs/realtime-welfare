@@ -93,10 +93,6 @@ Run the pipeline model evaluation based on the provided configuration. The paper
 Custom TorchVision transform for padded scaling that maintains aspect ratios
 
 
-### `workbench-dino.ipynb`
-(Work in progress) evaluate a generic dino model
-
-
 ### `analysis-confusion.ipynb`  
 Evaluate the performance of the reidentification model and render a confusion matrix. 
 
@@ -118,10 +114,6 @@ Analyse the output of the pipeline profiler CSV file. Not used in the paper dire
 
 ### `/config.json`
 Configuration for training the re-identification model.
-
-
-### `/config-dino.cfg`
-(Work in progress) Configuration for training the Dino-based re-identification model.
 
 
 ### `/Makefile.cfg`
